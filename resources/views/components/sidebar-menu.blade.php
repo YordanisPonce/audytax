@@ -99,8 +99,8 @@
                     </li>
                 @endcan
 
-                <!-- auditoryTypes -->
-                @can('qualityControl index')
+                <!-- qualityControl -->
+                {{-- @can('qualityControl index')
                     <li>
                         <a href="{{ route('qualityControls.index') }}"
                             class="navItem {{ request()->is('qualityControls.*') || request()->is('qualityControls*') || request()->is('qualityControls.*') || request()->is('qualityControls*') || $qualityControl ? 'active' : '' }}">
@@ -136,7 +136,10 @@
                             </a>
                         </li>
                     @endforeach
-                @endisset
+                @endisset --}}
+
+
+
             @endhasrole
         </ul>
         <!-- Upgrade Your Business Plan Card Start -->
