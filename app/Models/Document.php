@@ -15,6 +15,11 @@ class Document extends Model
     {
         return $this->belongsTo(Fase::class);
     }
+    //add  relation document belongs to AuditoryType
+    public function auditoryType()
+    {
+        return $this->belongsTo(AuditoryType::class);
+    }
 
     public function qualityControl()
     {
