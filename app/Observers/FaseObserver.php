@@ -17,10 +17,10 @@ class FaseObserver
      */
     public function created(Fase $fase)
     {
-        $status = Status::where('key', 'waiting')->first();
-        if ($status) {
-            $fase->documents()->create(['name' => 'Documento 1', 'status_id' => $status->id]);
-        }
+        // $status = Status::where('key', 'waiting')->first();
+        // if ($status) {
+        //     $fase->documents()->create(['name' => 'Documento 1', 'status_id' => $status->id]);
+        // }
     }
 
     /**

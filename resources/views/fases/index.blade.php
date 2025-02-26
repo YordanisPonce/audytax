@@ -61,7 +61,7 @@
                                             {{ __('Name') }}
                                         </th>
                                         <th scope="col" class="table-th ">
-                                            {{ __('Documents Amount') }}
+                                            {{ __('Documents') }}
                                         </th>
                                         <th scope="col" class="table-th ">
                                             {{ __('Auditory Type') }}
@@ -88,7 +88,11 @@
                                                 <a href="{{ route('fases.show', $fase) . '?' . $param }}">{{ $fase->name }}</a>
                                             </td>
                                             <td class="table-td">
-                                                {{ $fase->documents_count }}
+                                                @forelse($fase->documents as $document)
+                                                    <div>{{ $document->name }}</div>
+                                                @empty
+                                                    <div>{{ __('No documents') }}</div>
+                                                @endforelse
                                             </td>
                                             <td class="table-td">
                                                 {{ $fase->auditoryType->name }}
