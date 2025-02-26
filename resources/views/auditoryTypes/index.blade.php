@@ -12,8 +12,9 @@
         @endif
         {{-- Alert end --}}
 
-
+        {{-- Tarjeta principal que contiene la tabla de tipos de auditoría --}}
         <div class="card">
+            {{-- Encabezado de la tarjeta con botones de acción --}}
             <header class="card-header noborder">
                 <div class="justify-end flex gap-3 items-center flex-wrap">
                     {{-- Create Button start --}}
@@ -31,6 +32,7 @@
                         <iconify-icon icon="mdi:refresh" class="text-xl "></iconify-icon>
                     </a>
                 </div>
+                {{-- Barra de búsqueda --}}
                 <div class="justify-center flex flex-wrap sm:flex items-center lg:justify-end gap-3">
                     <div class="relative w-full sm:w-auto flex items-center">
                         <form id="searchForm" method="get" action="{{ route('auditoryTypes.index') }}">
@@ -43,40 +45,60 @@
                     </div>
                 </div>
             </header>
+
+            {{-- Cuerpo de la tarjeta con la tabla de datos --}}
             <div class="card-body px-6 pb-6">
                 <div class="overflow-x-auto -mx-6">
                     <div class="inline-block min-w-full align-middle">
                         <div class="overflow-hidden ">
+                            {{-- Tabla de tipos de auditoría --}}
                             <table class="min-w-full divide-y divide-slate-100 table-fixed dark:divide-slate-700">
+                                {{-- Encabezados de la tabla --}}
                                 <thead class="bg-slate-200 dark:bg-slate-700">
                                     <tr>
                                         <th scope="col" class="table-th ">
                                             {{ __('Name') }}
                                         </th>
+                                        {{-- Commented out Fases Amount column
                                         <th scope="col" class="table-th ">
                                             {{ __('Fases Amount') }}
+                                        </th>
+                                        --}}
+                                        <th scope="col" class="table-th ">
+                                            {{ __('Documents') }}
                                         </th>
                                         <th scope="col" class="table-th w-20">
                                             {{ __('Action') }}
                                         </th>
                                     </tr>
                                 </thead>
+                                {{-- Cuerpo de la tabla con los datos --}}
                                 <tbody
                                     class="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700">
                                     @forelse ($auditoryTypes as $auditoryType)
                                         <tr>
+                                            {{-- Columna del nombre con enlace a detalles --}}
                                             <td class="table-td">
                                                 <a href="{{ route('auditoryTypes.show', $auditoryType) }}">
                                                     {{ $auditoryType->name }}
                                                 </a>
-                                              
                                             </td>
+                                            {{-- Columna que muestra la cantidad de fases --}}
+                                            {{-- Commented out Fases count
                                             <td class="table-td">
                                                 {{ $auditoryType->fases_count }}
                                             </td>
+                                            --}}
+                                            {{-- Columna que muestra los documentos --}}
+                                            <td class="table-td">
+                                                {{ $auditoryType->documents->count() }}
+                                           </td>
+                                            
+
+                                            {{-- Columna de acciones (ver, editar, eliminar) --}}
                                             <td class="table-td">
                                                 <div class="flex space-x-3 rtl:space-x-reverse">
-                                                    {{-- view --}}
+                                                    {{-- Botón para ver detalles --}}
                                                     @can('auditoryType show')
                                                         <a class="action-btn" href="{{ route('auditoryTypes.show', $auditoryType) }}">
                                                             <iconify-icon icon="heroicons:eye"></iconify-icon>
@@ -106,6 +128,7 @@
                                             </td>
                                         </tr>
                                     @empty
+                                        {{-- Mensaje cuando no hay resultados --}}
                                         <tr class="border border-slate-100 dark:border-slate-900 relative">
                                             <td class="table-cell text-center" colspan="5">
                                                 <img src="{{ asset('images/result-not-found.svg') }}"
@@ -117,15 +140,16 @@
                                     @endforelse
                                 </tbody>
                             </table>
+                            {{-- Paginación de la tabla --}}
                             <x-table-footer :per-page-route-name="'auditoryTypes.index'" :data="$auditoryTypes" />
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
+    {{-- Scripts para la funcionalidad de eliminación --}}
     @push('scripts')
         <script>
             function sweetAlertDelete(event, formId) {
