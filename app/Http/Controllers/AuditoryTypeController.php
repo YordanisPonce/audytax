@@ -94,18 +94,22 @@ class AuditoryTypeController extends Controller
      */
     public function store(AuditoryTypeRequest $request)
     {
-        AuditoryType::create(['name' => $request->validated('name')]);
+          // Crear el tipo de auditoría y obtener la instancia creada
+    $auditoryType = AuditoryType::create(['name' => $request->validated('name')]);
 
-        //create documents
-        foreach ($request->input('documents', []) as $documentName) {
-        $auditoryType = AuditoryType::latest()->first();
+    // Convertir el string de documentos en un array
+    $documentNames = explode(',', $request->input('documents'));
+    Log::info('Document Names:', $documentNames);
+
+    // Crear documentos asociados
+    foreach ($documentNames as $documentName) {
         $auditoryType->documents()->create([
-                'name' => $documentName,
-                'status_id' => \App\Models\Status::where('key', 'waiting')->first()->id,
-            ]);
-        }
+            'name' => trim($documentName), // Eliminar espacios en blanco
+            'status_id' => \App\Models\Status::where('key', 'waiting')->first()->id,
+        ]);
+    }
 
-        return redirect()->route('auditoryTypes.index')->with('message', 'Tipo de auditoría creada satisfactoriamente');
+    return redirect()->route('auditoryTypes.index')->with('message', 'Tipo de auditoría creada satisfactoriamente');
     }
 
     /**
