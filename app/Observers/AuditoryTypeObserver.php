@@ -20,9 +20,9 @@ class AuditoryTypeObserver
     public function created(AuditoryType $auditoryType)
     {
         $status = Status::where('key', 'waiting')->first();
-        Fase::create([
-            'name' => 'Fase 1', 'description' => 'Descripcion de la fase 1', 'auditory_type_id' => $auditoryType->id, 'status_id' =>  $status->id
-        ]);
+        // Fase::create([
+        //     'name' => 'Fase 1', 'description' => 'Descripcion de la fase 1', 'auditory_type_id' => $auditoryType->id, 'status_id' =>  $status->id
+        // ]);
     }
 
     /**
