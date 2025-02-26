@@ -46,6 +46,11 @@ class AuditoryTypeController extends Controller
             ->withCount([
                 'fases' => function ($query) {
                     $query->whereDoesntHave('qualityControl');
+                },
+                'documents as total_documents' => function($query) {
+                    $query->whereHas('fase', function($q) {
+                        $q->whereDoesntHave('qualityControl');
+                    });
                 }
             ])
             ->where('name', 'like', "%$q%")

@@ -91,8 +91,8 @@
                                             --}}
                                             {{-- Columna que muestra los documentos --}}
                                             <td class="table-td">
-                                                {{ $auditoryType->documents->count() }}
-                                           </td>
+                                                {{ $auditoryType->fases->flatMap->documents->count() }}
+                                            </td>
                                             
 
                                             {{-- Columna de acciones (ver, editar, eliminar) --}}
