@@ -135,6 +135,15 @@ class AuditoryTypeController extends Controller
      */
     public function show(Request $request, AuditoryType $auditoryType)
     {
+        // Obtener la primera fase del tipo de auditoría (ya que cada auditoría solo tiene una fase)
+        $fase = $auditoryType->fases()->whereDoesntHave('qualityControl')->first();
+        
+        if (!$fase) {
+            return redirect()->route('auditoryTypes.index')
+                ->with('message', 'No se encontró ninguna fase para este tipo de auditoría')
+                ->with('status', 'warning');
+        }
+        
         $breadcrumbsItems = [
             [
                 'name' => __("Auditory Type"),
@@ -142,12 +151,7 @@ class AuditoryTypeController extends Controller
                 'active' => false
             ],
             [
-                'name' => __("Fases"),
-                'url' => route('auditoryTypes.show', ['auditoryType' => $auditoryType]),
-                'active' => false
-            ],
-            [
-                'name' => 'Show',
+                'name' => 'Documentos',
                 'url' => '#',
                 'active' => true
             ],
@@ -156,24 +160,24 @@ class AuditoryTypeController extends Controller
         $q = $request->get('q');
         $perPage = $request->get('per_page', 10);
         $sort = $request->get('sort');
-        $fases = QueryBuilder::for(Fase::class)
+        
+        // Obtener los documentos de la fase
+        $documents = QueryBuilder::for(\App\Models\Document::class)
             ->orderBy('id')
             ->allowedSorts(['description'])
-            ->with('auditoryType', 'qualityControl', 'status')
-            ->withCount('documents')
-            ->where('auditory_type_id', $auditoryType->id)
-            ->whereDoesntHave('qualityControl')
+            ->with('fase', 'qualityControl', 'status')
+            ->where('fase_id', $fase->id)
             ->latest()
             ->paginate($perPage)
             ->appends(['per_page' => $perPage, 'q' => $q, 'sort' => $sort]);
-        return view('fases.index', [
-            'fases' => $fases,
+            
+        return view('documents.index', [
+            'documents' => $documents,
             'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => 'Fases de la auditoría ' . $auditoryType->name,
-            'auditoryId' => $auditoryType->id,
+            'pageTitle' => 'Documentos de la auditoría ' . $auditoryType->name,
+            'faseId' => $fase->id
         ]);
     }
-
     /**
      * Show the form for editing the specified resource.
      *

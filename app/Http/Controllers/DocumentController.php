@@ -79,8 +79,10 @@ class DocumentController extends Controller
         $fase = Fase::find($request->fase_id);
         $request['quality_control_id'] = $fase->qualityControl->id ?? null;
         $document = Document::create($request->only('name', 'url', 'fase_id', 'description', 'quality_control_id', 'status_id'));
-
-        return redirect()->route('fases.show', ['fase' => $document->fase])->with('message', 'Documento agregado satisfactoriamente');
+        
+        // Redireccionar al tipo de auditoría en lugar de la fase para ocultar las fases en la URL
+        $auditoryType = $fase->auditoryType;
+        return redirect()->route('auditoryTypes.show', ['auditoryType' => $auditoryType])->with('message', 'Documento agregado satisfactoriamente');
     }
 
     /**
@@ -103,6 +105,7 @@ class DocumentController extends Controller
     public function edit(Request $request, Document $document)
     {
         $faseId = $request->get('fase');
+        $auditoryType = $document->fase->auditoryType;
         $breadcrumbsItems = [
             [
                 'name' => 'Auditory Type',
@@ -110,8 +113,8 @@ class DocumentController extends Controller
                 'active' => false
             ],
             [
-                'name' => __("Fases"),
-                'url' => route('fases.show', ['fase' => $document->fase]),
+                'name' => $auditoryType->name,
+                'url' => route('auditoryTypes.show', ['auditoryType' => $auditoryType]),
                 'active' => false
             ],
             [
@@ -147,7 +150,10 @@ class DocumentController extends Controller
     {
         $request['url'] = $this->updateFile($request->doc, 'documents', $document->url);
         $document->update($request->only($document->getFillable()));
-        return redirect()->route('fases.show', ['fase' => $document->fase])->with('message', 'Documento actualizado satisfactoriamente');
+        
+        // Redireccionar al tipo de auditoría en lugar de la fase para ocultar las fases en la URL
+        $auditoryType = $document->fase->auditoryType;
+        return redirect()->route('auditoryTypes.show', ['auditoryType' => $auditoryType])->with('message', 'Documento actualizado satisfactoriamente');
     }
 
     /**
@@ -159,7 +165,15 @@ class DocumentController extends Controller
     public function destroy(Document $document)
     {
         $this->removeFile($document->url);
+        $fase = $document->fase;
+        $auditoryType = $fase->auditoryType;
         $document->delete();
+        
+        // Si la solicitud viene de una URL que contiene 'fase', redirigir al tipo de auditoría
+        if (request()->is('*fase*')) {
+            return redirect()->route('auditoryTypes.show', ['auditoryType' => $auditoryType])->with('message', 'Documento eliminado satisfactoriamente');
+        }
+        
         return redirect()->back()->with('message', 'Documento eliminado satisfactoriamente');
     }
 
@@ -205,6 +219,11 @@ class DocumentController extends Controller
                 $document = Document::find($key);
                 $document->update(['url' => $path, 'status_id' => $status->id, 'original_name' => $orignalName]);
             }
+            
+            // Redireccionar al tipo de auditoría si existe
+            if ($fase && $fase->auditoryType) {
+                return redirect()->route('auditoryTypes.show', ['auditoryType' => $fase->auditoryType])->with('message', 'Archivos subidos satisfactoriamente');
+            }
         }
 
         return redirect()->back();
@@ -217,6 +236,12 @@ class DocumentController extends Controller
             return redirect()->back();
 
         $document->update(['status_id' => $status->id]);
+        
+        // Si la solicitud viene de una URL que contiene 'fase', redirigir al tipo de auditoría
+        if (request()->is('*fase*') && $document->fase && $document->fase->auditoryType) {
+            return redirect()->route('auditoryTypes.show', ['auditoryType' => $document->fase->auditoryType])->with('message', 'Documento marcado como completo');
+        }
+        
         return redirect()->back();
     }
 
@@ -228,6 +253,12 @@ class DocumentController extends Controller
 
         $this->removeFile($document->url);
         $document->update(['status_id' => $status->id, 'url' => null]);
+        
+        // Si la solicitud viene de una URL que contiene 'fase', redirigir al tipo de auditoría
+        if (request()->is('*fase*') && $document->fase && $document->fase->auditoryType) {
+            return redirect()->route('auditoryTypes.show', ['auditoryType' => $document->fase->auditoryType])->with('message', 'Documento cancelado');
+        }
+        
         return redirect()->back();
     }
 }
