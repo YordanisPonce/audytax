@@ -19,4 +19,9 @@ class AuditoryType extends Model
     {
         return $this->hasMany(QualityControl::class);
     }
+    //add relation auditoryType has many documents
+    public function documents()
+    {
+        return $this->hasMany(Document::class);
+    }
 }

@@ -46,6 +46,11 @@ class AuditoryTypeController extends Controller
             ->withCount([
                 'fases' => function ($query) {
                     $query->whereDoesntHave('qualityControl');
+                },
+                'documents as total_documents' => function($query) {
+                    $query->whereHas('fase', function($q) {
+                        $q->whereDoesntHave('qualityControl');
+                    });
                 }
             ])
             ->where('name', 'like', "%$q%")
@@ -94,8 +99,32 @@ class AuditoryTypeController extends Controller
      */
     public function store(AuditoryTypeRequest $request)
     {
-        AuditoryType::create(['name' => $request->validated('name')]);
-        return redirect()->route('auditoryTypes.index')->with('message', 'Tipo de auditoría creada satisfactoriamente');
+        // Crear el tipo de auditoría
+        $auditoryType = AuditoryType::create(['name' => $request->validated('name')]);
+
+        // Crear una fase inicial para este tipo de auditoría
+        $fase = $auditoryType->fases()->create([
+            'name' => 'Fase 1',
+            'description' => 'Fase inicial',
+            'status_id' => \App\Models\Status::where('key', 'waiting')->first()->id
+        ]);
+
+        // Convertir el string de documentos en un array
+        $documentNames = explode(',', $request->input('documents'));
+
+        // Crear documentos asociados a la fase
+        foreach ($documentNames as $documentName) {
+            if (trim($documentName) !== '') {
+                $auditoryType->documents()->create([
+                    'name' => trim($documentName),
+                    'status_id' => \App\Models\Status::where('key', 'waiting')->first()->id,
+                    'fase_id' => $fase->id  // Aquí asociamos el documento a la fase
+                ]);
+            }
+        }
+
+        return redirect()->route('auditoryTypes.index')
+            ->with('message', 'Tipo de auditoría creada satisfactoriamente');
     }
 
     /**
@@ -182,8 +211,26 @@ class AuditoryTypeController extends Controller
      */
     public function update(AuditoryTypeRequest $request, AuditoryType $auditoryType)
     {
+        // Update the audit type name
         $auditoryType->update(['name' => $request->validated('name')]);
-        return redirect()->route('auditoryTypes.index')->with('message', 'Tipo de auditorìa actualizada satisfactoriamente');
+
+        // Delete existing documents
+        $auditoryType->documents()->delete();
+
+        // Convert the string of documents into an array
+        $documentNames = explode(',', $request->input('documents'));
+
+        // Create new documents
+        foreach ($documentNames as $documentName) {
+            if (trim($documentName) !== '') {
+                $auditoryType->documents()->create([
+                    'name' => trim($documentName),
+                    'status_id' => \App\Models\Status::where('key', 'waiting')->first()->id,
+                ]);
+            }
+        }
+
+        return redirect()->route('auditoryTypes.index')->with('message', 'Tipo de auditoría actualizada satisfactoriamente');
     }
 
     /**

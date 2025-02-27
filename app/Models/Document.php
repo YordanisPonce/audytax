@@ -8,12 +8,17 @@ use Illuminate\Database\Eloquent\Model;
 class Document extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'url', 'description', 'fase_id', 'quality_control_id', 'status_id', 'original_name'];
+    protected $fillable = ['name', 'url', 'description', 'fase_id', 'quality_control_id', 'status_id','auditory_type_id', 'original_name'];
     protected $with = ['status'];
 
     public function fase()
     {
         return $this->belongsTo(Fase::class);
+    }
+    //add  relation document belongs to AuditoryType
+    public function auditoryType()
+    {
+        return $this->belongsTo(AuditoryType::class);
     }
 
     public function qualityControl()
