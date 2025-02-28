@@ -10,7 +10,7 @@
         {{-- Create user form start --}}
         <form method="POST" action="{{ route('auditoryTypes.store') }}" enctype="multipart/form-data" class="max-w-xl m-auto">
             @csrf
-            <x-form-auditory-type :auditoryType="false" :label="__('Save')" />
+            <x-form-auditory-type :auditoryType="false" :label="__('Save')" :clients="$clients" />
         </form>
         {{-- Create user form end --}}
     </div>

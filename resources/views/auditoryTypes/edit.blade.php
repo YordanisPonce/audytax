@@ -11,7 +11,7 @@
             class="max-w-4xl m-auto">
             @csrf
             @method('PUT')
-           <x-form-auditory-type :auditoryType="$auditoryType" :label="__('Save')" />
+           <x-form-auditory-type :auditoryType="$auditoryType" :label="__('Save')" :clients="$clients" />
         </form>
         {{-- Update auditoryType form end --}}
     </div>
