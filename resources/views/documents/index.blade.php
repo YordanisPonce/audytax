@@ -59,9 +59,9 @@
                                         <th scope="col" class="table-th ">
                                             {{ __('Status') }}
                                         </th>
-                                        <th scope="col" class="table-th ">
+                                        {{-- <th scope="col" class="table-th ">
                                             {{ __('Fase') }}
-                                        </th>
+                                        </th> --}}
                                         <th scope="col" class="table-th w-20">
                                             {{ __('Action') }}
                                         </th>
@@ -77,9 +77,9 @@
                                             <td class="table-td">
                                                 {{ $document->status->label }}
                                             </td>
-                                            <td class="table-td">
+                                            {{-- <td class="table-td">
                                                 {{ $document->fase->name }}
-                                            </td>
+                                            </td> --}}
                                             <td class="table-td">
                                                 <div class="flex space-x-3 rtl:space-x-reverse">
                                                     @can('document update')
