@@ -9,7 +9,7 @@ class AuditoryType extends Model
 {
     use HasFactory;
     protected $fillable = ['name', 'client_id'];
-    protected $with = ['fases'];
+    protected $with = ['fases', 'client'];
 
     public function fases()
     {

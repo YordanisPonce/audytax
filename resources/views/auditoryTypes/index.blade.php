@@ -59,14 +59,18 @@
                                         <th scope="col" class="table-th ">
                                             {{ __('Name') }}
                                         </th>
+                                        <th scope="col" class="table-th ">
+                                            {{ __('Client') }}
+                                        </th>
+                                        <th scope="col" class="table-th ">
+                                            {{ __('Documents') }}
+                                        </th>
                                         {{-- Commented out Fases Amount column
                                         <th scope="col" class="table-th ">
                                             {{ __('Fases Amount') }}
                                         </th>
                                         --}}
-                                        <th scope="col" class="table-th ">
-                                            {{ __('Documents') }}
-                                        </th>
+
                                         <th scope="col" class="table-th w-20">
                                             {{ __('Action') }}
                                         </th>
@@ -83,18 +87,18 @@
                                                     {{ $auditoryType->name }}
                                                 </a>
                                             </td>
+                                            <td class="table-td">
+                                                {{ $auditoryType->client->name ?? __('No Client') }}
+                                            </td>
+                                            <td class="table-td">
+                                                {{ $auditoryType->fases->flatMap->documents->count() }}
+                                            </td>
                                             {{-- Columna que muestra la cantidad de fases --}}
                                             {{-- Commented out Fases count
                                             <td class="table-td">
                                                 {{ $auditoryType->fases_count }}
                                             </td>
                                             --}}
-                                            {{-- Columna que muestra los documentos --}}
-                                            <td class="table-td">
-                                                {{ $auditoryType->fases->flatMap->documents->count() }}
-                                            </td>
-                                            
-
                                             {{-- Columna de acciones (ver, editar, eliminar) --}}
                                             <td class="table-td">
                                                 <div class="flex space-x-3 rtl:space-x-reverse">
