@@ -106,7 +106,7 @@ class HomeController extends Controller
             $totalQualityControl = QualityControl::whereHas('users', function ($query) {
                 $query->where('users.id', auth()->id());
             })->count();
-
+            
             $completeQualiltyCotrol = QualityControl::whereHas('users', function ($query) {
                 $query->where('users.id', auth()->id());
             })->whereHas('status', function ($query) {
@@ -122,7 +122,8 @@ class HomeController extends Controller
                 'qualityControls' => $totalQualityControl,
                 'comments' => $comments,
                 'links' => $links,
-                'qualityControlsCompletePercent' => number_format((max([$completeQualiltyCotrol, 1]) * 100) / $totalQualityControl, 0),
+                // 'qualityControlsCompletePercent' => number_format((max([$completeQualiltyCotrol, 1]) * 100) / $totalQualityControl, 0),
+                'qualityControlsCompletePercent' => $totalQualityControl > 0 ? number_format((max([$completeQualityControl, 1]) * 100) / $totalQualityControl, 0) : 0,
             ];
         }
         return view('Index', [
