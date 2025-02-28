@@ -37,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
     public function boot()
     {
         Model::shouldBeStrict(!$this->app->isProduction());
+        Model::preventLazyLoading(!$this->app->isProduction());
         $roles = ['admin' => 'Administrador', 'consultant' => 'Consultor', 'client' => 'Cliente'];
         view()->share('allRoles', $roles);
 
