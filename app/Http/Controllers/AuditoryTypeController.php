@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\AuditoryTypeRequest;
 use App\Models\AuditoryType;
+use App\Models\Company;
 use App\Models\Fase;
 use App\Models\User;
 use App\Policies\AuditoryTypePolicy;
@@ -85,9 +86,12 @@ class AuditoryTypeController extends Controller
             ],
         ];
 
+        $clients = User::role('client')->get();
+
         return view('auditoryTypes.create', [
             'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => __("Auditory Types")
+            'pageTitle' => __("Auditory Types"),
+            'clients' => $clients
         ]);
     }
 
@@ -99,9 +103,15 @@ class AuditoryTypeController extends Controller
      */
     public function store(AuditoryTypeRequest $request)
     {
-        // Crear el tipo de auditoría
-        $auditoryType = AuditoryType::create(['name' => $request->validated('name')]);
-
+        // Validar y obtener el ID del cliente de la solicitud
+        $clientId = $request->validated('client_id');
+    
+        // Crear el tipo de auditoría y asociarlo con el cliente
+        $auditoryType = AuditoryType::create([
+            'name' => $request->validated('name'),
+            'client_id' => $clientId, // Suponiendo que el modelo AuditoryType tiene un campo client_id
+        ]);
+    
         // Crear una fase inicial para este tipo de auditoría
         $fase = $auditoryType->fases()->create([
             'name' => 'Fase 1',
@@ -193,16 +203,19 @@ class AuditoryTypeController extends Controller
                 'active' => false
             ],
             [
-                'name' => 'Show',
+                'name' => 'Edit',
                 'url' => '#',
                 'active' => true
             ],
         ];
 
+        $clients = User::role('client')->get();
+
         return view('auditoryTypes.edit', [
             'auditoryType' => $auditoryType,
             'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => 'Mostrar Tipo de auditorìa',
+            'pageTitle' => 'Edit Auditory Type',
+            'clients' => $clients
         ]);
     }
 

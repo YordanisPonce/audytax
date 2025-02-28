@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 class AuditoryType extends Model
 {
     use HasFactory;
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'client_id'];
+    protected $with = ['fases'];
 
     public function fases()
     {
@@ -23,5 +24,10 @@ class AuditoryType extends Model
     public function documents()
     {
         return $this->hasMany(Document::class);
+    }
+    
+    public function client()
+    {
+        return $this->belongsTo(User::class, 'client_id');
     }
 }
