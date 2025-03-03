@@ -18,7 +18,7 @@ class DocumentPolicy
      */
     public function viewAny(User $user)
     {
-        return $user->can('document index');
+        return $user->can('document index') || $user->hasRole('client');
     }
 
     /**
@@ -30,7 +30,7 @@ class DocumentPolicy
      */
     public function view(User $user, Document $document)
     {
-        return $user->can('document show');
+        return $user->can('document show') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
     }
 
     /**
@@ -41,7 +41,7 @@ class DocumentPolicy
      */
     public function create(User $user)
     {
-        return $user->can('document create');
+        return $user->can('document create') || $user->hasRole('client');
     }
 
     /**
@@ -53,7 +53,7 @@ class DocumentPolicy
      */
     public function update(User $user, Document $document)
     {
-        return $user->can('document update');
+        return $user->can('document update') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
     }
 
     /**
@@ -65,7 +65,7 @@ class DocumentPolicy
      */
     public function delete(User $user, Document $document)
     {
-        return $user->can('document delete');
+        return $user->can('document delete') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
     }
 
     /**
@@ -77,7 +77,7 @@ class DocumentPolicy
      */
     public function restore(User $user, Document $document)
     {
-        return $user->can('document delete');
+        return $user->can('document delete') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
     }
 
     /**
@@ -89,11 +89,11 @@ class DocumentPolicy
      */
     public function forceDelete(User $user, Document $document)
     {
-        return $user->can('document delete');
+        return $user->can('document delete') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
     }
     
     public function download(User $user, Document $document)
     {
-     return $user->isAdmin() || $user->hasDocument($document);
+        return $user->isAdmin() || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
     }
 }

@@ -20,14 +20,14 @@
             <header class=" card-header noborder">
                 <div class="justify-end flex gap-3 items-center flex-wrap">
                     {{-- Create Button start --}}
-                    @can('document create')
+                    @if(auth()->user()->can('document create') || auth()->user()->hasRole('client'))
                         <a class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
                             href="{{ route('documents.create') . '?' .  $queryParams }}">
                             <iconify-icon icon="ic:round-plus" class="text-lg mr-1">
                             </iconify-icon>
                             {{ __('New') }}
                         </a>
-                    @endcan
+                    @endif
                     {{-- Refresh Button start --}}
                     <a class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2.5 cursor-pointer"
                         onclick="location.reload()">
@@ -82,12 +82,12 @@
                                             </td> --}}
                                             <td class="table-td">
                                                 <div class="flex space-x-3 rtl:space-x-reverse">
-                                                    @can('document update')
+                                                    @if(auth()->user()->can('document update') || auth()->user()->hasRole('client'))
                                                         <a class="action-btn"
                                                             href="{{ route('documents.edit', ['document' => $document]) . '?' .  $queryParams }}">
                                                             <iconify-icon icon="heroicons:pencil-square"></iconify-icon>
                                                         </a>
-                                                    @endcan
+                                                    @endif
                                                     @if ($document->url)
                                                         @can('document download')
                                                             <a class="action-btn"
@@ -97,7 +97,7 @@
                                                         @endcan
                                                     @endif
                                                     {{-- delete --}}
-                                                    @can('document delete')
+                                                    @if(auth()->user()->can('document delete') || auth()->user()->hasRole('client'))
                                                         <form id="deleteForm{{ $document->id }}" method="POST"
                                                             action="{{ route('documents.destroy', $document) }}">
                                                             @csrf
@@ -108,7 +108,7 @@
                                                                 <iconify-icon icon="heroicons:trash"></iconify-icon>
                                                             </a>
                                                         </form>
-                                                    @endcan
+                                                    @endif
                                                 </div>
                                             </td>
                                         </tr>

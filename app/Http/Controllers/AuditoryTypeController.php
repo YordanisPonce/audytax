@@ -21,7 +21,8 @@ class AuditoryTypeController extends Controller
     public function __construct()
     {
         $this->authorizeResource(AuditoryType::class, 'auditoryType');
-        $this->middleware('is_admin');
+        // $this->middleware('is_admin')
+        $this->middleware('is_admin')->except(['show']);
     }
     /**
      * Display a listing of the resource.
