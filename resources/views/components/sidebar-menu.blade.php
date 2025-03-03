@@ -50,6 +50,32 @@
                     </span>
                 </a>
             </li>
+            
+            <!-- Auditorias para clientes -->
+            @hasrole('client')
+                @php
+                    $clientAudits = \App\Models\AuditoryType::where('client_id', auth()->id())->get();
+                @endphp
+                
+                @if($clientAudits->count() > 0)
+                    <li class="sidebar-menu-title mt-2">
+                        <span>{{ __('Mis Auditorías') }}</span>
+                    </li>
+                    
+                    @foreach($clientAudits as $audit)
+                        <li>
+                            <a href="{{ route('auditoryTypes.show', $audit) }}"
+                                class="navItem {{ request()->is('auditoryTypes/'.$audit->id) ? 'active' : '' }}">
+                                <span class="flex items-center">
+                                    <iconify-icon class=" nav-icon" icon="fluent-mdl2:compliance-audit"></iconify-icon>
+                                    <span class="truncate">{{ $audit->name }}</span>
+                                </span>
+                            </a>
+                        </li>
+                    @endforeach
+                @endif
+            @endhasrole
+            
             {{--             <!-- Database -->
             <li>
                 <a href="{{ route('database-backups.index') }}"
@@ -70,8 +96,11 @@
                     </span>
                 </a>
             </li> --}}
+            
+            
+            
+                
 
-            <!-- Users -->
 
             @hasrole('admin')
                 @can('user index')

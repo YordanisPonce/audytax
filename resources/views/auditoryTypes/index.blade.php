@@ -60,7 +60,7 @@
                                             {{ __('Name') }}
                                         </th>
                                         <th scope="col" class="table-th ">
-                                            {{ __('Client') }}
+                                            {{ __('Cliente') }}
                                         </th>
                                         <th scope="col" class="table-th ">
                                             {{ __('Documents') }}
