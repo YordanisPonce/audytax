@@ -40,6 +40,8 @@ class DocumentController extends Controller
     public function create(Request $request)
     {
         $faseId = $request->get('fase');
+        $fase = Fase::find($faseId);
+        $auditoryType = $fase->auditoryType;
         $breadcrumbsItems = [
             [
                 'name' => 'Auditory Type',
@@ -47,23 +49,28 @@ class DocumentController extends Controller
                 'active' => false
             ],
             [
-                'name' => 'Fases',
-                'url' => route('fases.index'),
+                'name' => $auditoryType->name,
+                'url' => route('auditoryTypes.show', ['auditoryType' => $auditoryType]),
                 'active' => false
             ],
             [
                 'name' => 'Create',
-                'url' => route('fases.create'),
+                'url' => '#',
                 'active' => true
             ],
         ];
-        $qualityControl = Fase::find($faseId)->qualityControl;
+        
+        // Ocultar el enlace 'Auditory Type' para clientes
+        if (auth()->user()->hasRole('client')) {
+            array_shift($breadcrumbsItems);
+        }
+        $qualityControl = $fase->qualityControl;
         return view('documents.create', [
             'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => __("Documents"),
-            "fases" => Fase::all(),
-            "statuses" => Status::all(),
-            "qualityControl" => $qualityControl ?: null
+            'pageTitle' => __('Documents'),
+            'fases' => Fase::all(),
+            'statuses' => Status::all(),
+            'qualityControl' => $qualityControl ?: null
         ]);
     }
 
@@ -123,6 +130,11 @@ class DocumentController extends Controller
                 'active' => true
             ],
         ];
+        
+        // Ocultar el enlace 'Auditory Type' para clientes
+        if (auth()->user()->hasRole('client')) {
+            array_shift($breadcrumbsItems);
+        }
         $qualityControl = null;
         $fase = Fase::find($faseId);
         if ($fase) {
