@@ -4,8 +4,14 @@
 <x-app-layout>
     <div>
         <div class=" mb-6">
-            {{-- Breadcrumb start --}}
-            <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="$pageTitle" />
+
+            @if(auth()->user()->hasRole('client'))
+                {{-- Breadcrumb client --}}
+                <x-breadcrumb :breadcrumb-items="[['name' => 'Documentos','url' => '#','active' => true,]]" :page-title="$pageTitle" />
+            @else
+                {{-- Breadcrumb start --}}
+                <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="$pageTitle" />
+            @endif
 
         </div>
 
