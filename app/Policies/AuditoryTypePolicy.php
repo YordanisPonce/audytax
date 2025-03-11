@@ -30,7 +30,7 @@ class AuditoryTypePolicy
      */
     public function view(User $user, AuditoryType $auditoryType)
     {
-        return $user->can('auditoryType show') || ($user->hasRole('client') && $auditoryType->client_id === $user->id);
+        return $user->can('auditoryType show') || ($user->hasRole('client') && $auditoryType->clients->contains($user->id));
     }
 
     /**

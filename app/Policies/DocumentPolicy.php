@@ -30,7 +30,7 @@ class DocumentPolicy
      */
     public function view(User $user, Document $document)
     {
-        return $user->can('document show') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
+        return $user->can('document show') || ($user->hasRole('client') && $document->fase->auditoryType->clients->contains($user->id));
     }
 
     /**
@@ -53,7 +53,7 @@ class DocumentPolicy
      */
     public function update(User $user, Document $document)
     {
-        return $user->can('document update') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
+        return $user->can('document update') || ($user->hasRole('client') && $document->fase->auditoryType->clients->contains($user->id));
     }
 
     /**
@@ -65,7 +65,7 @@ class DocumentPolicy
      */
     public function delete(User $user, Document $document)
     {
-        return $user->can('document delete') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
+        return $user->can('document delete') || ($user->hasRole('client') && $document->fase->auditoryType->clients->contains($user->id));
     }
 
     /**
@@ -77,7 +77,7 @@ class DocumentPolicy
      */
     public function restore(User $user, Document $document)
     {
-        return $user->can('document delete') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
+        return $user->can('document delete') || ($user->hasRole('client') && $document->fase->auditoryType->clients->contains($user->id));
     }
 
     /**
@@ -89,11 +89,11 @@ class DocumentPolicy
      */
     public function forceDelete(User $user, Document $document)
     {
-        return $user->can('document delete') || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
+        return $user->can('document delete') || ($user->hasRole('client') && $document->fase->auditoryType->clients->contains($user->id));
     }
     
     public function download(User $user, Document $document)
     {
-        return $user->isAdmin() || ($user->hasRole('client') && $document->fase->auditoryType->client_id === $user->id);
+        return $user->isAdmin() || ($user->hasRole('client') && $document->fase->auditoryType->clients->contains($user->id));
     }
 }
