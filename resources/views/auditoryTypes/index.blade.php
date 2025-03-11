@@ -88,7 +88,11 @@
                                                 </a>
                                             </td>
                                             <td class="table-td">
-                                                {{ $auditoryType->client->name ?? __('No Client') }}
+                                                @if($auditoryType->clients->count() > 0)
+                                                    {{ $auditoryType->clients->pluck('name')->join(', ') }}
+                                                @else
+                                                    {{ __('No Clients') }}
+                                                @endif
                                             </td>
                                             <td class="table-td">
                                                 {{ $auditoryType->fases->flatMap->documents->count() }}

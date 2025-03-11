@@ -54,7 +54,7 @@
             <!-- Auditorias para clientes -->
             @hasrole('client')
                 @php
-                    $clientAudits = \App\Models\AuditoryType::where('client_id', auth()->id())->get();
+                    $clientAudits = auth()->user()->auditoryTypes()->get();
                 @endphp
                 
                 @if($clientAudits->count() > 0)

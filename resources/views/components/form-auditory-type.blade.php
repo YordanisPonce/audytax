@@ -18,18 +18,26 @@
         </div>
     </div>
 
-    <!-- Sección para seleccionar el cliente -->
+    <!-- Sección para seleccionar múltiples clientes -->
     <div class="form-group mt-4">
-        <label for="client_id" class="form-label">{{ __('Client') }}</label>
-        <select name="client_id" id="client_id" class="form-control" required>
-            <option value="">{{ __('Select a client') }}</option>
+        <label class="form-label">{{ __('Clients') }}</label>
+        <div class="flex flex-col space-y-2 mt-2">
             @foreach($clients as $client)
-                <option value="{{ $client->id }}" {{ $auditoryType && $auditoryType->client_id == $client->id ? 'selected' : '' }}>
-                    {{ $client->name }}
-                </option>
+                <div class="flex items-center">
+                    <input 
+                        type="checkbox" 
+                        name="client_ids[]" 
+                        id="client_{{ $client->id }}" 
+                        value="{{ $client->id }}" 
+                        class="form-checkbox h-4 w-4 text-primary border-slate-300 rounded" 
+                        {{ $auditoryType && $auditoryType->clients->contains($client->id) ? 'checked' : '' }}>
+                    <label for="client_{{ $client->id }}" class="ml-2 text-sm text-slate-600 dark:text-slate-300">
+                        {{ $client->name }}
+                    </label>
+                </div>
             @endforeach
-        </select>
-        <x-input-error :messages="$errors->get('client_id')" class="mt-2" />
+        </div>
+        <x-input-error :messages="$errors->get('client_ids')" class="mt-2" />
     </div>
 
     <!-- Sección para ingresar documentos usando un textarea -->

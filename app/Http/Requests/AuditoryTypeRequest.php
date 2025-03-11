@@ -25,7 +25,8 @@ class AuditoryTypeRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'client_id' => ['required', 'exists:users,id']
+            'client_ids' => ['required', 'array'],
+            'client_ids.*' => ['exists:users,id']
         ];
     }
 }

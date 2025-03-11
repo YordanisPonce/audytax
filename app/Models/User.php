@@ -133,4 +133,9 @@ class User extends Authenticatable implements MustVerifyEmail, HasMedia
     {
         return $this->hasMany(Comment::class);
     }
+    
+    public function auditoryTypes()
+    {
+        return $this->belongsToMany(AuditoryType::class, 'auditory_type_client', 'client_id', 'auditory_type_id');
+    }
 }

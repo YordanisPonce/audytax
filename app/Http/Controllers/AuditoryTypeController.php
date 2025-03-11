@@ -104,14 +104,13 @@ class AuditoryTypeController extends Controller
      */
     public function store(AuditoryTypeRequest $request)
     {
-        // Validar y obtener el ID del cliente de la solicitud
-        $clientId = $request->validated('client_id');
-    
-        // Crear el tipo de auditoría y asociarlo con el cliente
+        // Crear el tipo de auditoría
         $auditoryType = AuditoryType::create([
             'name' => $request->validated('name'),
-            'client_id' => $clientId, // Suponiendo que el modelo AuditoryType tiene un campo client_id
         ]);
+        
+        // Asociar los clientes seleccionados con el tipo de auditoría
+        $auditoryType->clients()->attach($request->validated('client_ids'));
     
         // Crear una fase inicial para este tipo de auditoría
         $fase = $auditoryType->fases()->create([
@@ -231,6 +230,9 @@ class AuditoryTypeController extends Controller
     {
         // Update the audit type name
         $auditoryType->update(['name' => $request->validated('name')]);
+        
+        // Sync the selected clients with the auditory type
+        $auditoryType->clients()->sync($request->validated('client_ids'));
 
         // Delete existing documents
         $auditoryType->documents()->delete();
