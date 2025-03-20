@@ -63,7 +63,10 @@
                                             {{ __('Cliente') }}
                                         </th>
                                         <th scope="col" class="table-th ">
-                                            {{ __('Documents') }}
+                                            {{ __('Documentos') }}
+                                        </th>
+                                        <th scope="col" class="table-th ">
+                                            {{ __('Documentos pendientes') }}
                                         </th>
                                         {{-- Commented out Fases Amount column
                                         <th scope="col" class="table-th ">
@@ -95,7 +98,10 @@
                                                 @endif
                                             </td>
                                             <td class="table-td">
-                                                {{ $auditoryType->fases->flatMap->documents->count() }}
+                                                {{ $auditoryType->fases->flatMap->documents->filter(function($doc) { return $doc->isApproved(); })->count() }}
+                                            </td>
+                                            <td class="table-td">
+                                                {{ $auditoryType->fases->flatMap->documents->filter(function($doc) { return !$doc->isApproved(); })->count() }}
                                             </td>
                                             {{-- Columna que muestra la cantidad de fases --}}
                                             {{-- Commented out Fases count
