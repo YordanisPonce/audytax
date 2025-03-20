@@ -57,15 +57,14 @@
         </div> --}}
         {{-- Document statuses end --}}
 
-        @if(auth()->user()->hasRole('admin'))
+        @if(auth()->user()->hasRole('admin') && $document)
         {{-- Approval status start --}}
         <div class="input-area">
             <label class="form-label inline-flex items-center">
-                <input type="checkbox" name="is_approved" class="form-checkbox text-indigo-600 transition duration-150 ease-in-out dark:bg-slate-800 dark:border-slate-600" value="1" {{ $document && $document->is_approved ? 'checked' : '' }}>
-                <span class="ml-2 text-gray-700 dark:text-slate-300">{{ __('Approve Document') }}</span>
+                <input type="checkbox" name="is_approved" class="form-checkbox text-indigo-600 transition duration-150 ease-in-out dark:bg-slate-800 dark:border-slate-600" value="1" {{ $document->is_approved ? 'checked' : '' }}>
+                <span class="ml-2 text-gray-700 dark:text-slate-300">{{ __('Aprobar Documento') }}</span>
             </label>
         </div>
-        {{-- Approval status end --}}
         @endif
     </div>
     <button type="submit" class="btn inline-flex justify-center btn-dark mt-4">
