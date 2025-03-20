@@ -80,7 +80,16 @@
                                 </thead>
                                 <tbody
                                     class="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700">
-                                    @forelse ($documents as $document)
+                                    @php
+                                            $pendingDocuments = $documents->filter(function($doc) {
+                                                return !$doc->isApproved();
+                                            });
+                                            $approvedDocuments = $documents->filter(function($doc) {
+                                                return $doc->isApproved();
+                                            });
+                                            $sortedDocuments = $pendingDocuments->merge($approvedDocuments);
+                                        @endphp
+                                        @forelse ($sortedDocuments as $document)
                                         @if(auth()->user()->hasRole('client') ? $document->isApproved() : true)
                                         <tr>
                                             <td class="table-td">
