@@ -97,7 +97,10 @@ class DocumentController extends Controller
         
         // Redirect to auditory type instead of phase to hide phases in the URL
         $auditoryType = $fase->auditoryType;
-        return redirect()->route('auditoryTypes.show', ['auditoryType' => $auditoryType])->with('message', 'Documento agregado satisfactoriamente');
+        $message = auth()->user()->hasRole('client') 
+            ? 'El documento se mandará a revisión'
+            : 'Documento agregado satisfactoriamente';
+        return redirect()->route('auditoryTypes.show', ['auditoryType' => $auditoryType])->with('message', $message);
     }
 
     /**
