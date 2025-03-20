@@ -65,6 +65,11 @@
                                         <th scope="col" class="table-th ">
                                             {{ __('Status') }}
                                         </th>
+                                        @if(auth()->user()->hasRole('admin'))
+                                        <th scope="col" class="table-th ">
+                                            {{ __('Aprobacion') }}
+                                        </th>
+                                        @endif
                                         {{-- <th scope="col" class="table-th ">
                                             {{ __('Fase') }}
                                         </th> --}}
@@ -76,6 +81,7 @@
                                 <tbody
                                     class="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700">
                                     @forelse ($documents as $document)
+                                        @if(auth()->user()->hasRole('client') ? $document->isApproved() : true)
                                         <tr>
                                             <td class="table-td">
                                                 {{ $document->name }}
@@ -83,6 +89,15 @@
                                             <td class="table-td">
                                                 {{ $document->status->label }}
                                             </td>
+                                            @if(auth()->user()->hasRole('admin'))
+                                            <td class="table-td">
+                                                @if($document->isApproved())
+                                                    <span class="badge bg-success-500 text-white capitalize">{{ __('Aprobado') }}</span>
+                                                @else
+                                                    <span class="badge bg-warning-500 text-white capitalize">{{ __('Pendiente') }}</span>
+                                                @endif
+                                            </td>
+                                            @endif
                                             {{-- <td class="table-td">
                                                 {{ $document->fase->name }}
                                             </td> --}}
@@ -118,6 +133,7 @@
                                                 </div>
                                             </td>
                                         </tr>
+                                        @endif
                                     @empty
                                         <tr class="border border-slate-100 dark:border-slate-900 relative">
                                             <td class="table-cell text-center" colspan="5">

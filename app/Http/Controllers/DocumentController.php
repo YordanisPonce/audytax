@@ -85,9 +85,17 @@ class DocumentController extends Controller
         $request['url'] = $this->upload($request->doc, 'documents');
         $fase = Fase::find($request->fase_id);
         $request['quality_control_id'] = $fase->qualityControl->id ?? null;
-        $document = Document::create($request->only('name', 'url', 'fase_id', 'description', 'quality_control_id', 'status_id'));
         
-        // Redireccionar al tipo de auditoría en lugar de la fase para ocultar las fases en la URL
+        // Set is_approved based on user role
+        if (auth()->user()->hasRole('admin')) {
+            $request['is_approved'] = true;
+        } else {
+            $request['is_approved'] = false; // Ensure it's false for clients and other roles
+        }
+        
+        $document = Document::create($request->only('name', 'url', 'fase_id', 'description', 'quality_control_id', 'status_id', 'is_approved'));
+        
+        // Redirect to auditory type instead of phase to hide phases in the URL
         $auditoryType = $fase->auditoryType;
         return redirect()->route('auditoryTypes.show', ['auditoryType' => $auditoryType])->with('message', 'Documento agregado satisfactoriamente');
     }
@@ -161,6 +169,14 @@ class DocumentController extends Controller
     public function update(DocumentRequest $request, Document $document)
     {
         $request['url'] = $this->updateFile($request->doc, 'documents', $document->url);
+        
+        // Solo permitir que los administradores cambien el estado de aprobación
+        if (auth()->user()->hasRole('admin')) {
+            $request['is_approved'] = $request->has('is_approved');
+        } else {
+            unset($request['is_approved']); // Asegurar que otros roles no puedan modificar el estado
+        }
+        
         $document->update($request->only($document->getFillable()));
         
         // Redireccionar al tipo de auditoría en lugar de la fase para ocultar las fases en la URL
@@ -272,5 +288,41 @@ class DocumentController extends Controller
         }
         
         return redirect()->back();
+    }
+    
+    /**
+     * Approve a document
+     *
+     * @param  \App\Models\Document  $document
+     * @return \Illuminate\Http\Response
+     */
+    public function approveDocument(Document $document)
+    {
+        $document->update(['is_approved' => true]);
+        
+        // Si la solicitud viene de una URL que contiene 'fase', redirigir al tipo de auditoría
+        if (request()->is('*fase*') && $document->fase && $document->fase->auditoryType) {
+            return redirect()->route('auditoryTypes.show', ['auditoryType' => $document->fase->auditoryType])->with('message', 'Documento aprobado');
+        }
+        
+        return redirect()->back()->with('message', 'Documento aprobado');
+    }
+    
+    /**
+     * Reject a document approval
+     *
+     * @param  \App\Models\Document  $document
+     * @return \Illuminate\Http\Response
+     */
+    public function rejectDocument(Document $document)
+    {
+        $document->update(['is_approved' => false]);
+        
+        // Si la solicitud viene de una URL que contiene 'fase', redirigir al tipo de auditoría
+        if (request()->is('*fase*') && $document->fase && $document->fase->auditoryType) {
+            return redirect()->route('auditoryTypes.show', ['auditoryType' => $document->fase->auditoryType])->with('message', 'Aprobación de documento rechazada');
+        }
+        
+        return redirect()->back()->with('message', 'Aprobación de documento rechazada');
     }
 }

@@ -51,6 +51,8 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::get('by-fase/{faseId}', 'getDocumentsByFaseId')->name('by-fase');
         Route::get('mark-as-complete/{document}', 'markAsComplete')->name('mark-as-complete');
         Route::get('cancel-document/{document}', 'cancelDocument')->name('cancel-document');
+        Route::get('approve-document/{document}', 'approveDocument')->name('approve-document');
+        Route::get('reject-document/{document}', 'rejectDocument')->name('reject-document');
         Route::post('by-fase/{faseId}', 'saveFiles')->name('save-files');
     });
 

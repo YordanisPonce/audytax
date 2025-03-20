@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Document extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'url', 'description', 'fase_id', 'quality_control_id', 'status_id','auditory_type_id', 'original_name'];
+    protected $fillable = ['name', 'url', 'description', 'fase_id', 'quality_control_id', 'status_id', 'is_approved', 'auditory_type_id', 'original_name'];
     protected $with = ['status'];
 
     public function fase()
@@ -44,5 +44,15 @@ class Document extends Model
     public function isComplete()
     {
         return $this->status->key == 'complete';
+    }
+    
+    public function isApproved()
+    {
+        return $this->is_approved;
+    }
+    
+    public function isPendingApproval()
+    {
+        return !$this->is_approved;
     }
 }

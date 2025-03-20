@@ -128,7 +128,8 @@ class AuditoryTypeController extends Controller
                 $auditoryType->documents()->create([
                     'name' => trim($documentName),
                     'status_id' => \App\Models\Status::where('key', 'waiting')->first()->id,
-                    'fase_id' => $fase->id  // Aquí asociamos el documento a la fase
+                    'fase_id' => $fase->id,  // Aquí asociamos el documento a la fase
+                    'is_approved' => true // Establecer  por defecto aprobado , xq esto solo sera usado por un admin.
                 ]);
             }
         }
@@ -246,6 +247,7 @@ class AuditoryTypeController extends Controller
                 $auditoryType->documents()->create([
                     'name' => trim($documentName),
                     'status_id' => \App\Models\Status::where('key', 'waiting')->first()->id,
+                    'is_approved' => true // Establecer como pendiente de aprobación por defecto
                 ]);
             }
         }
