@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AppsController;
 use App\Http\Controllers\AuditoryTypeController;
 use App\Http\Controllers\CommentController;
+use App\Http\Controllers\FileController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\RoleController;
@@ -54,6 +55,14 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
         Route::get('approve-document/{document}', 'approveDocument')->name('approve-document');
         Route::get('reject-document/{document}', 'rejectDocument')->name('reject-document');
         Route::post('by-fase/{faseId}', 'saveFiles')->name('save-files');
+    });
+    
+    // files
+    Route::resource('files', FileController::class)->only(['index', 'store', 'destroy']);
+    Route::controller(FileController::class)->prefix('files')->as('files.')->group(function () {
+        Route::get('download/{file}', 'download')->name('download');
+        Route::get('approve/{file}', 'approveFile')->name('approve');
+        Route::get('reject/{file}', 'rejectFile')->name('reject');
     });
 
     // qualityControl

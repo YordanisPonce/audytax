@@ -30,6 +30,11 @@ class Document extends Model
     {
         return $this->belongsTo(Status::class);
     }
+    
+    public function files()
+    {
+        return $this->hasMany(File::class);
+    }
 
     public function isWaiting()
     {

@@ -114,14 +114,14 @@
                                             </td> --}}
                                                 <td class="table-td">
                                                     <div class="flex space-x-3 rtl:space-x-reverse">
-                                                        @if (auth()->user()->can('document update'))
+                                                        {{-- @if (auth()->user()->can('document update'))
                                                             <a class="action-btn"
                                                                 href="{{ route('documents.edit', ['document' => $document]) . '?' . $queryParams }}">
                                                                 <iconify-icon
                                                                     icon="heroicons:pencil-square"></iconify-icon>
                                                             </a>
-                                                        @endif
-                                                        @if ($document->url)
+                                                        @endif --}}
+                                                        {{-- @if ($document->url)
                                                             @can('document download')
                                                                 <a class="action-btn"
                                                                     href="{{ route('documents.download', ['document' => $document]) }}">
@@ -129,7 +129,7 @@
                                                                         icon="ic:baseline-download"></iconify-icon>
                                                                 </a>
                                                             @endcan
-                                                        @endif
+                                                        @endif --}}
                                                         {{-- delete --}}
                                                         @if (auth()->user()->can('document delete'))
                                                             <form id="deleteForm{{ $document->id }}" method="POST"
@@ -144,17 +144,14 @@
                                                             </form>
                                                         @endif
 
-
-                                                        <label for="file_{{ $document->id }}"
-                                                            class="action-btn cursor-pointer" type="submit">
-                                                            <iconify-icon icon="heroicons:arrow-up-tray"></iconify-icon>
-                                                            <input type="file" id="file_{{ $document->id }}"
-                                                                class="hidden">
-                                                        </label>
+                                                            {{-- Ver archivos del documento --}}
+                                                        <a class="action-btn" href="{{ route('files.index', ['document' => $document->id]) }}">
+                                                            <iconify-icon icon="heroicons:document-duplicate"></iconify-icon>
+                                                        </a>
 
                                                     </div>
                                                 </td>
-                                            </tr>
+                                          </tr>
                                         @endif
                                     @empty
                                         <tr class="border border-slate-100 dark:border-slate-900 relative">
