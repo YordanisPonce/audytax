@@ -170,11 +170,11 @@
                 event.preventDefault();
                 let form = document.getElementById(formId);
                 Swal.fire({
-                    title: '@lang('Ejecturar Operacion?')',
+                    title: '@lang('Ejecutar Operación?')',
                     icon: 'question',
                     showDenyButton: true,
-                    confirmButtonText: '@lang('Delete')',
-                    denyButtonText: '@lang('Cancel')',
+                    confirmButtonText: '@lang('Eliminar')',
+                    denyButtonText: '@lang('Cancelar')',
                 }).then((result) => {
                     if (result.isConfirmed) {
                         form.submit();
