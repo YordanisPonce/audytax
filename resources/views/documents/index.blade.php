@@ -65,11 +65,11 @@
                                         <th scope="col" class="table-th ">
                                             {{ __('Status') }}
                                         </th>
-                                        @if (auth()->user()->hasRole('admin'))
+                                        {{-- @if (auth()->user()->hasRole('admin'))
                                             <th scope="col" class="table-th ">
                                                 {{ __('Aprobacion') }}
                                             </th>
-                                        @endif
+                                        @endif --}}
                                         {{-- <th scope="col" class="table-th ">
                                             {{ __('Fase') }}
                                         </th> --}}
@@ -98,7 +98,7 @@
                                                 <td class="table-td">
                                                     {{ $document->status->label }}
                                                 </td>
-                                                @if (auth()->user()->hasRole('admin'))
+                                                {{-- @if (auth()->user()->hasRole('admin'))
                                                     <td class="table-td">
                                                         @if ($document->isApproved())
                                                             <span
@@ -108,7 +108,7 @@
                                                                 class="badge bg-warning-500 text-white capitalize">{{ __('Pendiente') }}</span>
                                                         @endif
                                                     </td>
-                                                @endif
+                                                @endif --}}
                                                 {{-- <td class="table-td">
                                                 {{ $document->fase->name }}
                                             </td> --}}

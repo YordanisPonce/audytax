@@ -87,7 +87,7 @@ class DocumentController extends Controller
         $request['quality_control_id'] = $fase->qualityControl->id ?? null;
         
         // Set is_approved based on user role
-        $request['is_approved'] = false; // Ensure it's false for clients and other roles
+        $request['is_approved'] = true; // Ensure it's false for clients and other roles
         // if (auth()->user()->hasRole('admin')) {
         //     $request['is_approved'] = true;
         // } else {
