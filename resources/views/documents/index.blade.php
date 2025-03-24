@@ -5,9 +5,9 @@
     <div>
         <div class=" mb-6">
 
-            @if(auth()->user()->hasRole('client'))
+            @if (auth()->user()->hasRole('client'))
                 {{-- Breadcrumb client --}}
-                <x-breadcrumb :breadcrumb-items="[['name' => 'Documentos','url' => '#','active' => true,]]" :page-title="$pageTitle" />
+                <x-breadcrumb :breadcrumb-items="[['name' => 'Documentos', 'url' => '#', 'active' => true]]" :page-title="$pageTitle" />
             @else
                 {{-- Breadcrumb start --}}
                 <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="$pageTitle" />
@@ -26,9 +26,9 @@
             <header class=" card-header noborder">
                 <div class="justify-end flex gap-3 items-center flex-wrap">
                     {{-- Create Button start --}}
-                    @if(auth()->user()->can('document create') || auth()->user()->hasRole('client'))
+                    @if (auth()->user()->can('document create'))
                         <a class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
-                            href="{{ route('documents.create') . '?' .  $queryParams }}">
+                            href="{{ route('documents.create') . '?' . $queryParams }}">
                             <iconify-icon icon="ic:round-plus" class="text-lg mr-1">
                             </iconify-icon>
                             {{ __('New') }}
@@ -65,10 +65,10 @@
                                         <th scope="col" class="table-th ">
                                             {{ __('Status') }}
                                         </th>
-                                        @if(auth()->user()->hasRole('admin'))
-                                        <th scope="col" class="table-th ">
-                                            {{ __('Aprobacion') }}
-                                        </th>
+                                        @if (auth()->user()->hasRole('admin'))
+                                            <th scope="col" class="table-th ">
+                                                {{ __('Aprobacion') }}
+                                            </th>
                                         @endif
                                         {{-- <th scope="col" class="table-th ">
                                             {{ __('Fase') }}
@@ -81,72 +81,86 @@
                                 <tbody
                                     class="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700">
                                     @php
-                                            $pendingDocuments = $documents->filter(function($doc) {
-                                                return !$doc->isApproved();
-                                            });
-                                            $approvedDocuments = $documents->filter(function($doc) {
-                                                return $doc->isApproved();
-                                            });
-                                            $sortedDocuments = $pendingDocuments->merge($approvedDocuments);
-                                        @endphp
-                                        @forelse ($sortedDocuments as $document)
-                                        @if(auth()->user()->hasRole('client') ? $document->isApproved() : true)
-                                        <tr>
-                                            <td class="table-td">
-                                                {{ $document->name }}
-                                            </td>
-                                            <td class="table-td">
-                                                {{ $document->status->label }}
-                                            </td>
-                                            @if(auth()->user()->hasRole('admin'))
-                                            <td class="table-td">
-                                                @if($document->isApproved())
-                                                    <span class="badge bg-success-500 text-white capitalize">{{ __('Aprobado') }}</span>
-                                                @else
-                                                    <span class="badge bg-warning-500 text-white capitalize">{{ __('Pendiente') }}</span>
+                                        $pendingDocuments = $documents->filter(function ($doc) {
+                                            return !$doc->isApproved();
+                                        });
+                                        $approvedDocuments = $documents->filter(function ($doc) {
+                                            return $doc->isApproved();
+                                        });
+                                        $sortedDocuments = $pendingDocuments->merge($approvedDocuments);
+                                    @endphp
+                                    @forelse ($sortedDocuments as $document)
+                                        @if (auth()->user()->hasRole('client') ? $document->isApproved() : true)
+                                            <tr>
+                                                <td class="table-td">
+                                                    {{ $document->name }}
+                                                </td>
+                                                <td class="table-td">
+                                                    {{ $document->status->label }}
+                                                </td>
+                                                @if (auth()->user()->hasRole('admin'))
+                                                    <td class="table-td">
+                                                        @if ($document->isApproved())
+                                                            <span
+                                                                class="badge bg-success-500 text-white capitalize">{{ __('Aprobado') }}</span>
+                                                        @else
+                                                            <span
+                                                                class="badge bg-warning-500 text-white capitalize">{{ __('Pendiente') }}</span>
+                                                        @endif
+                                                    </td>
                                                 @endif
-                                            </td>
-                                            @endif
-                                            {{-- <td class="table-td">
+                                                {{-- <td class="table-td">
                                                 {{ $document->fase->name }}
                                             </td> --}}
-                                            <td class="table-td">
-                                                <div class="flex space-x-3 rtl:space-x-reverse">
-                                                    @if(auth()->user()->can('document update') || auth()->user()->hasRole('client'))
-                                                        <a class="action-btn"
-                                                            href="{{ route('documents.edit', ['document' => $document]) . '?' .  $queryParams }}">
-                                                            <iconify-icon icon="heroicons:pencil-square"></iconify-icon>
-                                                        </a>
-                                                    @endif
-                                                    @if ($document->url)
-                                                        @can('document download')
+                                                <td class="table-td">
+                                                    <div class="flex space-x-3 rtl:space-x-reverse">
+                                                        @if (auth()->user()->can('document update'))
                                                             <a class="action-btn"
-                                                                href="{{ route('documents.download', ['document' => $document]) }}">
-                                                                <iconify-icon icon="ic:baseline-download"></iconify-icon>
+                                                                href="{{ route('documents.edit', ['document' => $document]) . '?' . $queryParams }}">
+                                                                <iconify-icon
+                                                                    icon="heroicons:pencil-square"></iconify-icon>
                                                             </a>
-                                                        @endcan
-                                                    @endif
-                                                    {{-- delete --}}
-                                                    @if(auth()->user()->can('document delete') || auth()->user()->hasRole('client'))
-                                                        <form id="deleteForm{{ $document->id }}" method="POST"
-                                                            action="{{ route('documents.destroy', $document) }}">
-                                                            @csrf
-                                                            @method('DELETE')
-                                                            <a class="action-btn cursor-pointer"
-                                                                onclick="sweetAlertDelete(event, 'deleteForm{{ $document->id }}')"
-                                                                type="submit">
-                                                                <iconify-icon icon="heroicons:trash"></iconify-icon>
-                                                            </a>
-                                                        </form>
-                                                    @endif
-                                                </div>
-                                            </td>
-                                        </tr>
+                                                        @endif
+                                                        @if ($document->url)
+                                                            @can('document download')
+                                                                <a class="action-btn"
+                                                                    href="{{ route('documents.download', ['document' => $document]) }}">
+                                                                    <iconify-icon
+                                                                        icon="ic:baseline-download"></iconify-icon>
+                                                                </a>
+                                                            @endcan
+                                                        @endif
+                                                        {{-- delete --}}
+                                                        @if (auth()->user()->can('document delete'))
+                                                            <form id="deleteForm{{ $document->id }}" method="POST"
+                                                                action="{{ route('documents.destroy', $document) }}">
+                                                                @csrf
+                                                                @method('DELETE')
+                                                                <a class="action-btn cursor-pointer"
+                                                                    onclick="sweetAlertDelete(event, 'deleteForm{{ $document->id }}')"
+                                                                    type="submit">
+                                                                    <iconify-icon icon="heroicons:trash"></iconify-icon>
+                                                                </a>
+                                                            </form>
+                                                        @endif
+
+
+                                                        <label for="file_{{ $document->id }}"
+                                                            class="action-btn cursor-pointer" type="submit">
+                                                            <iconify-icon icon="heroicons:arrow-up-tray"></iconify-icon>
+                                                            <input type="file" id="file_{{ $document->id }}"
+                                                                class="hidden">
+                                                        </label>
+
+                                                    </div>
+                                                </td>
+                                            </tr>
                                         @endif
                                     @empty
                                         <tr class="border border-slate-100 dark:border-slate-900 relative">
                                             <td class="table-cell text-center" colspan="5">
-                                                <img src="{{ asset('images/result-not-found.svg') }}" class="w-64 m-auto" />
+                                                <img src="{{ asset('images/result-not-found.svg') }}"
+                                                    class="w-64 m-auto" />
                                                 <h2 class="text-xl text-slate-700 mb-8 -mt-4">
                                                     {{ __('No results found.') }}</h2>
                                             </td>
