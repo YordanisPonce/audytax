@@ -1,0 +1,39 @@
+{
+  "resources/css/app.scss": {
+    "file": "assets/app-b6d31497.css",
+    "isEntry": true,
+    "src": "resources/css/app.scss"
+  },
+  "resources/js/app.css": {
+    "file": "assets/app-1dd66bf7.css",
+    "src": "resources/js/app.css"
+  },
+  "resources/js/app.js": {
+    "css": [
+      "assets/app-1dd66bf7.css"
+    ],
+    "file": "assets/app-d35ef43c.js",
+    "isEntry": true,
+    "src": "resources/js/app.js"
+  },
+  "resources/js/custom/store.js": {
+    "file": "assets/store-7e6bbe8d.js",
+    "isEntry": true,
+    "src": "resources/js/custom/store.js"
+  },
+  "resources/js/main.js": {
+    "file": "assets/main-0fa41485.js",
+    "isEntry": true,
+    "src": "resources/js/main.js"
+  },
+  "resources/js/plugins/Select2.min.js": {
+    "file": "assets/Select2.min-ebbc739d.js",
+    "isEntry": true,
+    "src": "resources/js/plugins/Select2.min.js"
+  },
+  "resources/js/plugins/zabuto_calendar.min.js": {
+    "file": "assets/zabuto_calendar.min-e8989186.js",
+    "isEntry": true,
+    "src": "resources/js/plugins/zabuto_calendar.min.js"
+  }
+}
