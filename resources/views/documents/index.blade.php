@@ -149,6 +149,18 @@
                                                             <iconify-icon icon="heroicons:document-duplicate"></iconify-icon>
                                                         </a>
 
+                                                        {{-- Botón de upload de archivos directo --}}
+                                                        @if (!auth()->user()->hasRole('admin'))
+                                                            <form id="uploadForm{{ $document->id }}" action="{{ route('files.store') }}" method="POST" enctype="multipart/form-data" class="inline">
+                                                                @csrf
+                                                                <input type="hidden" name="document_id" value="{{ $document->id }}">
+                                                                <input type="file" name="file" id="fileInput{{ $document->id }}" class="hidden" onchange="document.getElementById('uploadForm{{ $document->id }}').submit()">
+                                                                <a class="action-btn cursor-pointer" onclick="document.getElementById('fileInput{{ $document->id }}').click()">
+                                                                    <iconify-icon icon="heroicons:arrow-up-tray"></iconify-icon>
+                                                                </a>
+                                                            </form>
+                                                        @endif
+
                                                     </div>
                                                 </td>
                                           </tr>
@@ -174,6 +186,12 @@
 
     </div>
 
+    {{-- El modal de subir archivos ha sido eliminado y reemplazado por un botón directo --}}
+                </div>
+            </form>
+        </div>
+    </div>
+
     @push('scripts')
         <script>
             function sweetAlertDelete(event, formId) {
@@ -191,6 +209,8 @@
                     }
                 })
             }
+
+            // Las funciones del modal han sido eliminadas ya que ahora la subida es directa
         </script>
     @endpush
 </x-app-layout>
