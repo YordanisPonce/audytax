@@ -41,23 +41,26 @@
             <div class="card-body px-6 pb-6">
                 {{-- Formulario para subir archivos (solo visible para clientes) --}}
                 @if (!auth()->user()->hasRole('admin'))
-                <div class="mb-6 p-4 bg-slate-50 dark:bg-slate-700 rounded-md">
-                    <h3 class="text-lg font-medium mb-3">{{ __('Subir nuevo archivo') }}</h3>
+                <div class=" flex mb-6 p-4  rounded-md">
                     <form action="{{ route('files.store') }}" method="POST" enctype="multipart/form-data" class="flex flex-wrap gap-3 items-end">
-                        @csrf
-                        <input type="hidden" name="document_id" value="{{ $document->id }}">
-                        <div class="flex-1">
-                            <label for="file" class="form-label">{{ __('Archivo') }}</label>
-                            <input type="file" name="file" id="file" class="form-control" required>
-                        </div>
+                        
                         <div>
-                            <button type="submit" class="btn btn-dark">
-                                <iconify-icon icon="heroicons:arrow-up-tray" class="text-lg mr-1"></iconify-icon>
-                                {{ __('Subir') }}
-                            </button>
+                            <h3 class="text-lg font-medium mb-3">{{ __('Subir nuevo archivo') }}</h3>
+                            @csrf
+                            <input type="hidden" class="" name="document_id" value="{{ $document->id }} ">
+                            <div class="">
+                                {{-- <label for="file" class="form-label">{{ __('Archivo') }}</label> --}}
+                                <input type="file" name="file" id="file" class="form-control bg-slate-50 dark:bg-slate-800 dark:text-white dark:file:hover:text-black-500 dark:border-slate-600 dark:file:bg-slate-700 dark:file:text-white dark:file:border-slate-600" required>
+                            </div>
                         </div>
-                    </form>
-                </div>
+                            <div>
+                                <button type="submit" class="btn btn-dark">
+                                    <iconify-icon icon="heroicons:arrow-up-tray" class="text-lg mr-1"></iconify-icon>
+                                    {{ __('Subir') }}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                 @endif
 
                 {{-- Tabla de archivos --}}
