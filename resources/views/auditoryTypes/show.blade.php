@@ -24,12 +24,13 @@
   {{-- Lista de fases tipo acordeón --}}
   <div class="space-y-4 max-w-4xl mx-auto">
     @foreach($fases as $fase)
-      <div x-data="{ open: false }" class="border rounded-md overflow-hidden">
+      <div class="border rounded-md overflow-hidden"> {{-- ✅ CORRECTO --}}
+
 
         {{-- Encabezado fase --}}
         <div class="flex justify-between items-center px-4 py-2 bg-gray-100 dark:bg-gray-800">
           {{-- Nombre de la fase (abre/cierra documentos) --}}
-          <button @click="open = !open" class="flex-1 text-left font-semibold">
+          <button onclick="toggleCollapse('collapse-fase-{{ $fase->id }}')" class="flex-1 text-left font-semibold"> {{-- NUEVO --}}
             {{ $fase->name }}
           </button>
 
@@ -65,9 +66,9 @@
               </form>
             @endcan
 
-            {{-- Flecha colapsar --}}
-            <button @click="open = !open" class="p-1">
-              <svg :class="{ 'rotate-180': open }" class="h-5 w-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             {{-- Flecha colapsar --}}
+            <button onclick="toggleCollapse('collapse-fase-{{ $fase->id }}')" class="p-1"> {{-- NUEVO --}}
+              <svg class="h-5 w-5 transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
@@ -76,7 +77,9 @@
 
         {{-- Documentos --}}
         {{-- Documentos --}}
-        <div x-show="open" x-cloak class="p-4 bg-white dark:bg-slate-700">
+        {{-- Documentos --}}
+<div id="collapse-fase-{{ $fase->id }}" class="p-4 bg-white dark:bg-slate-700 hidden"> {{-- ✅ CAMBIO --}}
+
           {{-- Botón agregar documento --}}
           <div class="flex justify-end mb-2">
             @can('document create')
@@ -136,6 +139,11 @@
 
   @push('scripts')
     <script type="text/javascript">
+     // NUEVO: función para toggle collapse
+      function toggleCollapse(id) {
+        const el = document.getElementById(id);
+        if (el) el.classList.toggle('hidden');
+      } 
       function sweetAlertDelete(event, formId) {
         event.preventDefault();
         const form = document.getElementById(formId);
