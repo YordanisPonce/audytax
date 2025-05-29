@@ -21,8 +21,14 @@
                 <div class="justify-end flex gap-3 items-center flex-wrap">
                     {{-- Create Button start --}}
                     @can('document create')
+                     @php
+    $queryParams = ['fase' => $faseId];
+    if (request()->has('qualityControl')) {
+        $queryParams['qualityControl'] = request()->get('qualityControl'); // directamente del request
+    }
+@endphp
                         <a class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
-                            href="{{ route('documents.create') . '?' .  $queryParams }}">
+                            href="{{ route('documents.create') . '?' . http_build_query($queryParams) }}">
                             <iconify-icon icon="ic:round-plus" class="text-lg mr-1">
                             </iconify-icon>
                             {{ __('New') }}
@@ -82,12 +88,14 @@
                                             </td>
                                             <td class="table-td">
                                                 <div class="flex space-x-3 rtl:space-x-reverse">
-                                                    @can('document update')
-                                                        <a class="action-btn"
-                                                            href="{{ route('documents.edit', ['document' => $document]) . '?' .  $queryParams }}">
-                                                            <iconify-icon icon="heroicons:pencil-square"></iconify-icon>
-                                                        </a>
-                                                    @endcan
+                                                   @can('document update')
+    <a class="action-btn"
+      href="{{ route('documents.edit', $document) . '?' . http_build_query(['fase' => $document->fase->id, 'qualityControl' => $qualityControl->id]) }}"
+>
+        <iconify-icon icon="heroicons:pencil-square"></iconify-icon>
+    </a>
+@endcan
+
                                                     @if ($document->url)
                                                         @can('document download')
                                                             <a class="action-btn"

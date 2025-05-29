@@ -104,46 +104,27 @@ class AuditoryTypeController extends Controller
      * @param  \App\Models\AuditoryType  $auditoryType
      * @return \Illuminate\Http\Response
      */
-    public function show(Request $request, AuditoryType $auditoryType)
-    {
-        $breadcrumbsItems = [
-            [
-                'name' => __("Auditory Type"),
-                'url' => route('auditoryTypes.index'),
-                'active' => false
-            ],
-            [
-                'name' => __("Fases"),
-                'url' => route('auditoryTypes.show', ['auditoryType' => $auditoryType]),
-                'active' => false
-            ],
-            [
-                'name' => 'Show',
-                'url' => '#',
-                'active' => true
-            ],
-        ];
+ public function show(Request $request, AuditoryType $auditoryType)
+{
+    $breadcrumbsItems = [
+        ['name' => __("Auditory Types"), 'url' => route('auditoryTypes.index'), 'active' => false],
+        ['name' => __("Fases"), 'url' => '#', 'active' => true],
+    ];
 
-        $q = $request->get('q');
-        $perPage = $request->get('per_page', 10);
-        $sort = $request->get('sort');
-        $fases = QueryBuilder::for(Fase::class)
-            ->orderBy('id')
-            ->allowedSorts(['description'])
-            ->with('auditoryType', 'qualityControl', 'status')
-            ->withCount('documents')
-            ->where('auditory_type_id', $auditoryType->id)
-            ->whereDoesntHave('qualityControl')
-            ->latest()
-            ->paginate($perPage)
-            ->appends(['per_page' => $perPage, 'q' => $q, 'sort' => $sort]);
-        return view('fases.index', [
-            'fases' => $fases,
-            'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => 'Fases de la auditoría ' . $auditoryType->name,
-            'auditoryId' => $auditoryType->id,
-        ]);
-    }
+    // Carga todas las fases que NO tienen quality_control (plantilla), junto a sus documentos
+    $fases = Fase::with('documents.status')
+        ->where('auditory_type_id', $auditoryType->id)
+        ->whereNull('quality_control_id')
+        ->get();
+
+    return view('auditoryTypes.show', [
+        'auditoryType' => $auditoryType,
+        'breadcrumbItems' => $breadcrumbsItems,
+        'pageTitle' => 'Fases de la auditoría ' . $auditoryType->name,
+        'fases' => $fases
+    ]);
+}
+
 
     /**
      * Show the form for editing the specified resource.

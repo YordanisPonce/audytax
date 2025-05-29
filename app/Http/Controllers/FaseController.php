@@ -81,40 +81,67 @@ class FaseController extends Controller
      */
     public function show(Request $request, Fase $fase)
     {
+        
+        $q = $request->get('q');
+        $perPage = $request->get('per_page', 10);
+        $sort = $request->get('sort');
+        
+        $documents = QueryBuilder::for(Document::class)
+        ->orderBy('id')
+        ->allowedSorts(['description'])
+        ->with('fase', 'qualityControl', 'status')
+        ->where('fase_id', $fase->id)
+        ->latest()
+        ->paginate($perPage)
+        ->appends(['per_page' => $perPage, 'q' => $q, 'sort' => $sort]);
+        // Detectar si viene desde qualityControl
+        $qualityControlId = $request->get('qualityControl');
+        $qualityControl = $qualityControlId ? $fase->qualityControl : null;
+         // 🔧 Breadcrumb dinámico
+    if ($qualityControl) {
         $breadcrumbsItems = [
             [
-                'name' => __("Auditory Type"),
+                'name' => __("Auditoría"),
+                'url' => route('qualityControls.index'),
+                'active' => false
+            ],
+            [
+                'name' => __("Fases"),
+                'url' => route('qualityControls.show', $qualityControl),
+                'active' => false
+            ],
+            [
+                'name' => 'Documentos',
+                'url' => '#',
+                'active' => true
+            ],
+        ];
+    } else {
+        $breadcrumbsItems = [
+            [
+                'name' => __("Plantilla de Auditoría"),
                 'url' => route('auditoryTypes.index'),
                 'active' => false
             ],
             [
                 'name' => __("Fases"),
-                'url' => '',
+                'url' => route('auditoryTypes.show', $fase->auditoryType),
                 'active' => false
             ],
             [
-                'name' => 'Documents',
+                'name' => 'Documentos',
                 'url' => '#',
                 'active' => true
             ],
         ];
-
-        $q = $request->get('q');
-        $perPage = $request->get('per_page', 10);
-        $sort = $request->get('sort');
-        $documents = QueryBuilder::for(Document::class)
-            ->orderBy('id')
-            ->allowedSorts(['description'])
-            ->with('fase', 'qualityControl', 'status')
-            ->where('fase_id', $fase->id)
-            ->latest()
-            ->paginate($perPage)
-            ->appends(['per_page' => $perPage, 'q' => $q, 'sort' => $sort]);
+    }
+    
         return view('documents.index', [
             'documents' => $documents,
             'breadcrumbItems' => $breadcrumbsItems,
             'pageTitle' => 'Documentos de la fase ' . $fase->name,
-            'faseId' => $fase->id
+            'faseId' => $fase->id,
+            'qualityControl' => $qualityControl,
         ]);
     }
 

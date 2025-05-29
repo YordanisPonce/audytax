@@ -178,8 +178,8 @@
     "success": "success",
     "to": "to",
     "Please check your email to verify your new email address. You cant use your new email to login until you verify it.": "Please check your email to verify your new email address. You cant use your new email to login until you verify it.",
-    "Auditory Type": "Tipo de Auditoría",
-    "Auditory Types": "Tipos de Auditoría",
+    "Auditory Type": "Plantilla de Auditoría",
+    "Auditory Types": "Plantillas de Auditoría",
     "Fases Amount": "Cantidad de fases",
     "Documents Amount": "Cantidad de documentos",
     "Documents": "Documentos",
@@ -187,8 +187,8 @@
     "Statuses": "Estados",
     "Status": "Estado",
     "Document": "Documento",
-    "Quality Control": "Control de calidad",
-    "Quality Controls": "Controles de calidad",
+    "Quality Control": "Auditoria",
+    "Quality Controls": "Auditorias",
     "Clients": "Clientes",
     "Consultors": "Consultores"
 }

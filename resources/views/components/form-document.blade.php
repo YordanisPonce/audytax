@@ -5,6 +5,18 @@
 <div class="bg-white dark:bg-slate-800 rounded-md p-5 pb-6">
 
     <div class="grid sm:grid-cols-1 gap-x-8 gap-y-4">
+        @if(request()->has('auditorytype'))
+    <input type="hidden" name="auditorytype" value="{{ request()->get('auditorytype') }}">
+@endif
+
+@if(request()->has('fase'))
+    <input type="hidden" name="fase" value="{{ request()->get('fase') }}">
+@endif
+@if(request()->has('qualityControl'))
+    <input type="hidden" name="qualityControl" value="{{ request()->get('qualityControl') }}">
+@endif
+
+
         {{-- Name input start --}}
         <div class="input-area">
             <label for="name" class="form-label">{{ __('Name') }}</label>

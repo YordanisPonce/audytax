@@ -39,25 +39,46 @@ class DocumentController extends Controller
      */
     public function create(Request $request)
     {
-        $faseId = $request->get('fase');
+          $faseId = $request->get('fase');
+    $fase = Fase::findOrFail($faseId);
+    $qualityControl = $fase->qualityControl;
+        if ($qualityControl) {
         $breadcrumbsItems = [
             [
-                'name' => 'Auditory Type',
-                'url' => route('auditoryTypes.index'),
-                'active' => false
+                'name' => 'Auditoría',
+                'url' => route('qualityControls.index'),
+                'active' => false,
             ],
             [
                 'name' => 'Fases',
-                'url' => route('fases.index'),
-                'active' => false
+                'url' => route('qualityControls.show', $qualityControl),
+                'active' => false,
             ],
             [
-                'name' => 'Create',
-                'url' => route('fases.create'),
-                'active' => true
+                'name' => 'Crear',
+                'url' => '#',
+                'active' => true,
             ],
         ];
-        $qualityControl = Fase::find($faseId)->qualityControl;
+    } else {
+        $breadcrumbsItems = [
+            [
+                'name' => 'Plantilla de Auditoría',
+                'url' => route('auditoryTypes.index'),
+                'active' => false,
+            ],
+            [
+                'name' => 'Fases',
+                'url' => route('auditoryTypes.show', $fase->auditoryType),
+                'active' => false,
+            ],
+            [
+                'name' => 'Crear',
+                'url' => '#',
+                'active' => true,
+            ],
+        ];
+    }
         return view('documents.create', [
             'breadcrumbItems' => $breadcrumbsItems,
             'pageTitle' => __("Documents"),
@@ -80,8 +101,25 @@ class DocumentController extends Controller
         $request['quality_control_id'] = $fase->qualityControl->id ?? null;
         $document = Document::create($request->only('name', 'url', 'fase_id', 'description', 'quality_control_id', 'status_id'));
 
-        return redirect()->route('fases.show', ['fase' => $document->fase])->with('message', 'Documento agregado satisfactoriamente');
+        // Si viene desde plantilla
+    if ($request->has('auditorytype')) {
+        return redirect()
+            ->route('auditoryTypes.show', ['auditoryType' => $request->get('auditorytype')])
+            ->with('message', 'Documento agregado satisfactoriamente');
     }
+
+    // Si viene desde control de calidad
+    if ($request->has('qualityControl')) {
+        return redirect()
+            ->to(route('fases.show', ['fase' => $document->fase->id]) . '?qualityControl=' . $request->get('qualityControl'))
+            ->with('message', 'Documento agregado satisfactoriamente');
+    }
+
+    // Redirección por defecto
+    return redirect()
+        ->route('fases.show', ['fase' => $document->fase->id])
+        ->with('message', 'Documento agregado satisfactoriamente');
+}
 
     /**
      * Display the specified resource.
@@ -143,12 +181,31 @@ class DocumentController extends Controller
      * @param  \App\Models\Document  $document
      * @return \Illuminate\Http\Response
      */
-    public function update(DocumentRequest $request, Document $document)
-    {
-        $request['url'] = $this->updateFile($request->doc, 'documents', $document->url);
-        $document->update($request->only($document->getFillable()));
-        return redirect()->route('fases.show', ['fase' => $document->fase])->with('message', 'Documento actualizado satisfactoriamente');
+ public function update(DocumentRequest $request, Document $document)
+{
+    $request['url'] = $this->updateFile($request->doc, 'documents', $document->url);
+    $document->update($request->only($document->getFillable()));
+
+    // Verifica si viene desde plantilla
+    if ($request->has('auditorytype')) {
+        return redirect()
+            ->route('auditoryTypes.show', ['auditoryType' => $request->get('auditorytype')])
+            ->with('message', 'Documento actualizado satisfactoriamente');
     }
+
+ if ($request->has('qualityControl')) {
+    return redirect()
+        ->to(route('fases.show', ['fase' => $document->fase->id]) . '?qualityControl=' . $request->get('qualityControl'))
+        ->with('message', 'Documento actualizado satisfactoriamente');
+}
+
+
+    // Si viene desde quality control
+    return redirect()
+        ->route('fases.show', ['fase' => $document->fase])
+        ->with('message', 'Documento actualizado satisfactoriamente');
+}
+
 
     /**
      * Remove the specified resource from storage.

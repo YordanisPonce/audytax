@@ -22,7 +22,7 @@ class DocumentObserver
      */
     public function created(Document $document)
     {
-        if (isset($document->qualityControl)) {
+        if ($document->qualityControl) {
             $message = "Ha creado un nuevo documento";
             $this->notify($message, $document->qualityControl);
         }
@@ -38,22 +38,24 @@ class DocumentObserver
     public function updated(Document $document)
     {
         $fase = $document->fase;
-        if ($fase && isset($fase->qualityControl))
+        if ($fase && $fase->qualityControl)
             $fase->updateStatus();
         $user = auth()->user();
         $message = '';
         $name = $document->name;
+        
         if ($user->hasRole(RoleEnum::Client->value)) {
             $message = "Ha subido el documento con nombre: $name";
         } else if ($user->hasRole(RoleEnum::Consultant->value)) {
             $status = $document->status->key == StatusEnum::Waiting->value ? 'pendiente' : 'completado';
             $message = "Ha cambiado el documento $name a el estado de $status";
-            $fase->qualityControl->users()->get()->each(function (User $item) use ($message) {
-                $user = User::find($item->id);
-                $user->notify(new Notify($message));
-            });
+             $fase->qualityControl->users()->each(function (User $item) use ($message) {
+            $item->notify(new Notify($message));
+        });
         }
+         if (!empty($message)) {
         $this->notify($message, $fase->qualityControl);
+    }
     }
 
 
