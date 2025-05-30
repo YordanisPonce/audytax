@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\StatusEnum;
 use App\Models\Fase;
 use App\Models\Status;
 use App\Traits\Notify;
@@ -17,7 +18,7 @@ class FaseObserver
      */
     public function created(Fase $fase)
     {
-        $status = Status::where('key', 'waiting')->first();
+        $status = Status::where('key', StatusEnum::Open->value)->first();
         if ($status) {
             $fase->documents()->create(['name' => 'Documento 1', 'status_id' => $status->id]);
         }

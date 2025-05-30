@@ -2,31 +2,25 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use App\Models\Status;
 
 class StatusSeeder extends Seeder
 {
-    /**
-     * Run the database seeds.
-     *
-     * @return void
-     */
     public function run()
     {
+        // Limpia la tabla y reinicia el contador de IDs
+        Status::truncate();
+
         $statuses = [
-            [
-                'key' => 'waiting', 'label' => 'En espera'
-            ],
-            [
-                'key' => 'processing', 'label' => 'Procesando'
-            ],
-            [
-                'key' => 'complete', 'label' => 'Completado'
-            ],
+            ['key' => 'open',           'label' => 'Abierto'],
+            ['key' => 'waiting_review', 'label' => 'Esperando revisión'],
+            ['key' => 'accepted',       'label' => 'Aceptado'],
+            ['key' => 'rejected',       'label' => 'Rechazado'],
         ];
 
-        Status::insert($statuses);
+        foreach ($statuses as $attrs) {
+            Status::create($attrs);
+        }
     }
 }

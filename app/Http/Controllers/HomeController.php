@@ -70,7 +70,7 @@ class HomeController extends Controller
                         DB::raw('COUNT(*) as count')
                     )
                         ->whereHas('status', function ($query) {
-                            $query->where('key', 'complete');
+                            $query->where('key', 'accepted');
                         })
                         ->whereBetween('created_at', [Carbon::now()->subDays(7), Carbon::now()])
                         ->groupBy('date')
@@ -78,10 +78,10 @@ class HomeController extends Controller
                         ->pluck('count')
                         ->toArray(),
                     'total' => Document::whereHas('status', function ($query) {
-                        $query->where('key', 'complete');
+                        $query->where('key', 'accepted');
                     })->count(),
                     'percentage' => (Document::whereHas('status', function ($query) {
-                        $query->where('key', 'complete');
+                        $query->where('key', 'accepted');
                     })->whereBetween('created_at', [Carbon::now()->subDays(7), Carbon::now()])->count() ?? 1 / Document::count()) * 100,
                 ],
                 'lastWeekProfit' => [
@@ -94,8 +94,14 @@ class HomeController extends Controller
                 'lastWeekOverview' => [
                     'labels' => ["Pendientes", "Aprobados"],
                     'data' => [
-                        Document::whereNull('url')->count(),
-                        Document::whereNotNull('url')->count()
+                        // Pendientes → documentos en estado waiting_review
+                        Document::whereHas('status', fn($q) => 
+                            $q->where('key', StatusEnum::WaitingReview->value)  // ← waiting_review
+                        )->count(),
+                        // Aprobados → accepted
+                        Document::whereHas('status', fn($q) => 
+                            $q->where('key', StatusEnum::Accepted->value)      // ← accepted
+                        )->count(),
                     ],
                     'title' => 'Total de Fases',
                     'amount' => Fase::count(),
@@ -110,7 +116,7 @@ class HomeController extends Controller
             $completeQualiltyCotrol = QualityControl::whereHas('users', function ($query) {
                 $query->where('users.id', auth()->id());
             })->whereHas('status', function ($query) {
-                $query->where('key', StatusEnum::Complete->value);
+                $query->where('key', StatusEnum::Accepted->value);
             })->count();
 
             $comments = Comment::whereHas('user', function ($query) {

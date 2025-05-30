@@ -49,10 +49,23 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::controller(DocumentController::class)->prefix('documents')->as('documents.')->group(function () {
         Route::get('download/{document}', 'download')->name('download');
         Route::get('by-fase/{faseId}', 'getDocumentsByFaseId')->name('by-fase');
-        Route::get('mark-as-complete/{document}', 'markAsComplete')->name('mark-as-complete');
+        // Route::get('mark-as-complete/{document}', 'markAsComplete')->name('mark-as-complete');
         Route::get('cancel-document/{document}', 'cancelDocument')->name('cancel-document');
         Route::post('by-fase/{faseId}', 'saveFiles')->name('save-files');
-    });
+         // ←——————————— NUEVAS RUTAS PARA ESTADOS ———————————→
+         // Cliente marca "Esperando revisión"
+         Route::get('{document}/waiting-review', 'markAsWaitingReview')
+              ->name('waiting-review');
+
+         // Consultor acepta
+           // 2) Consultor acepta
+         Route::get('mark-as-accept/{document}',  'markAsAccepted')->name('mark-as-accept');
+
+         // Consultor rechaza
+         Route::get('{document}/reject',        'markAsRejected')
+              ->name('reject');
+     });
+    
 
     // qualityControl
     Route::resource('qualityControls', QualityControlController::class);

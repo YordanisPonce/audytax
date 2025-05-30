@@ -17,7 +17,7 @@
                 <x-file-picker :document="$item" :fileId="'input-file-' . $loop->iteration" :fileName="'files[' . $item->id . ']'" />
             @endforeach
             <div class="flex items-center justify-between mt-4">
-                @if ($fase->isWaiting())
+                @if ($fase->isWaitingReview()|| $fase->isRejected())
                     @hasrole('client')
                         <button type="submit" class="btn btn-primary btn-sm">Subir</button>
                     @endhasrole

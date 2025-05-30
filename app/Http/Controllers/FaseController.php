@@ -67,7 +67,7 @@ class FaseController extends Controller
      */
     public function store(FaseRequest $request)
     {
-        $status = Status::where('key', 'waiting')->first();
+        $status = Status::where('key', 'waiting_review')->first();
         $fase = Fase::create($request->only('name', 'descripcion', 'auditory_type_id', 'quality_control_id') + ['status_id' => $status->id]);
         $params = $this->getParams($request, $fase);
         return redirect()->route($params['route'], $params['param'])->with('message', 'Fase agregada satisfactoriamente');

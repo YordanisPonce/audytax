@@ -35,7 +35,7 @@ class Fase extends Model
 
     public function createDocuments($fase)
     {
-        $status = Status::where('key', 'waiting')->first();
+        $status = Status::where('key', 'open')->first();
         if ($status)
             $documents = $fase->documents; {
             foreach ($documents as $key => $item) {
@@ -49,48 +49,72 @@ class Fase extends Model
         }
     }
 
-    public function getFinishPercent()
-    {
-        $total = $this->documents()->count();
-        $approvedDocuments = $this->documents()->whereHas('status', function ($query) {
-            if ($this->isWaiting()) {
-                $query->where('key', StatusEnum::Processing);
-            } else {
-                $query->where('key', StatusEnum::Complete);
-            }
-        })->count();
+   public function getFinishPercent(): float
+{
+    // Total de documentos en esta fase
+    $total = $this->documents()->count();
 
-        if (!$total)
-            return 0;
-
-        return number_format((($approvedDocuments * 100) / $total));
-
+    if ($total === 0) {
+        return 0;
     }
+
+    // Contamos solo los documentos cuyo estado es "accepted"
+    $acceptedCount = $this->documents()
+        ->whereHas('status', function ($query) {
+            $query->where('key', StatusEnum::Accepted->value);
+        })
+        ->count();
+
+    // Calculamos el porcentaje y lo retornamos
+    return number_format(($acceptedCount * 100) / $total, 2);
+}
+
 
     public function status()
     {
         return $this->belongsTo(Status::class);
     }
 
-    public function isWaiting(): bool
+   public function isOpen(): bool
     {
-        return $this->documents()->whereHas('status', function ($query) {
-            $query->where('key', StatusEnum::Waiting);
-        })->exists();
+        return $this->documents()
+            ->whereHas('status', fn($q) => $q->where('key', StatusEnum::Open->value))
+            ->exists();
     }
 
-    public function isProcessing(): bool
+    /**
+     * Si NO hay open, pero HAY waiting_review
+     */
+    public function isWaitingReview(): bool
     {
-        return $this->documents()->whereHas('status', function ($query) {
-            $query->where('key', StatusEnum::Processing);
-        })->exists() && !$this->isWaiting();
+        return ! $this->isOpen() && $this->documents()
+            ->whereHas('status', fn($q) => $q->where('key', StatusEnum::WaitingReview->value))
+            ->exists();
     }
 
-    public function isComplete(): bool
+    /**
+     * Si TODOS los docs están accepted (y ninguno open ni waiting_review)
+     */
+    public function isAccepted(): bool
     {
-        return $this->documents()->whereHas('status', function ($query) {
-            $query->where('key', StatusEnum::Complete);
-        })->exists() && !$this->isProcessing() && !$this->isWaiting();
+        $total = $this->documents()->count();
+        if (! $total) return false;
+
+        $acceptedCount = $this->documents()
+            ->whereHas('status', fn($q) => $q->where('key', StatusEnum::Accepted->value))
+            ->count();
+
+        return $acceptedCount === $total;
+    }
+
+    /**
+     * Si hay al menos un doc rejected
+     */
+    public function isRejected(): bool
+    {
+        return $this->documents()
+            ->whereHas('status', fn($q) => $q->where('key', StatusEnum::Rejected->value))
+            ->exists();
     }
 
 
@@ -99,31 +123,58 @@ class Fase extends Model
         return $this->documents()->whereNotNull('url')->count();
     }
 
-    public function updateStatus()
-    {
-        $waiting = Status::where('key', StatusEnum::Waiting->value)->first();
-        $processing = Status::where('key', StatusEnum::Processing->value)->first();
-        $complete = Status::where('key', StatusEnum::Complete->value)->first();
+  public function updateStatus(): void
+{
+    // Buscamos cada Status por su clave
+    $sOpen          = Status::where('key', StatusEnum::Open->value)->first();
+    $sWaitingReview = Status::where('key', StatusEnum::WaitingReview->value)->first();
+    $sAccepted      = Status::where('key', StatusEnum::Accepted->value)->first();
+    $sRejected      = Status::where('key', StatusEnum::Rejected->value)->first();
 
-        if ($this->isWaiting() && $this->status->id != $waiting->id) {
-            $this->status_id = $waiting->id;
-            $this->update();
-        } else if ($this->isProcessing() && $this->status->id != $processing->id) {
-            $this->status_id = $processing->id;
-            $this->update();
-        } else if ($this->isComplete() && $this->status->id != $complete->id) {
-            $this->status_id = $complete->id;
-            $this->update();
-        }
+    // Decidimos el nuevo estado de la fase según prioridades:
+    // 1. Si hay al menos un documento rechazado → rejected
+    // 2. Si aún hay documentos "open"           → open
+    // 3. Si no hay open pero hay waiting_review → waiting_review
+    // 4. Si todos están accepted                → accepted
+    $nuevo = null;
+
+    if ($this->isRejected()    && $sRejected) {
+        $nuevo = $sRejected;
     }
+    elseif ($this->isOpen()    && $sOpen) {
+        $nuevo = $sOpen;
+    }
+    elseif ($this->isWaitingReview() && $sWaitingReview) {
+        $nuevo = $sWaitingReview;
+    }
+    elseif ($this->isAccepted() && $sAccepted) {
+        $nuevo = $sAccepted;
+    }
+
+    // Si cambió, lo guardamos
+    if ($nuevo && $this->status_id !== $nuevo->id) {
+        $this->status_id = $nuevo->id;
+        $this->save();
+    }
+}
+
 
     public function comments(): HasMany
     {
         return $this->hasMany(Comment::class);
     }
 
-    public function getStatusLabel(): string
+     public function getStatusLabel(): string
     {
-        return $this->isWaiting() ? StatusEnum::Waiting->value : ($this->isProcessing() ? StatusEnum::Processing->value : StatusEnum::Complete->value);
+        if ($this->isRejected()) {
+            return StatusEnum::Rejected->value;
+        }
+        if ($this->isAccepted()) {
+            return StatusEnum::Accepted->value;
+        }
+        if ($this->isWaitingReview()) {
+            return StatusEnum::WaitingReview->value;
+        }
+        return StatusEnum::Open->value;
     }
 }

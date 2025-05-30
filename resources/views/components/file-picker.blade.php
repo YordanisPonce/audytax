@@ -13,7 +13,7 @@
             </a>
         </small>
     </p>
-    @if ($document->isWaiting())
+    @if ($document->isOpen()|| $document->isRejected())
         @hasrole('client')
             <label for="{{ $fileId }}"
                 class="ml-auto cursor-pointer active:scale-90 transition-all duration-100 input-area">
@@ -28,21 +28,27 @@
             <p class="onTop"></p>
             <iconify-icon icon="ic:sharp-pending-actions"></iconify-icon>
         @endhasrole
-    @elseif ($document->isProcessing())
+    @elseif ($document->isWaitingReview())
         @hasrole('client')
             <x-processing :className="'h-5 w-5'" :document="$document" />
         @else
-            <a @class(['action-btn', 'text-success-500' => $document->isComplete()]) href="{{ route('documents.mark-as-complete', ['document' => $document]) }}">
-                <iconify-icon icon="material-symbols:check"></iconify-icon>
-            </a>
-            <a @class(['action-btn text-danger-500']) href="{{ route('documents.cancel-document', ['document' => $document]) }}">
-                <iconify-icon icon="mdi:cancel-bold"></iconify-icon>
-            </a>
+
+            <a class="action-btn text-success-500" href="{{ route('documents.mark-as-accept', ['document' => $document]) }}">
+    <iconify-icon icon="material-symbols:check"></iconify-icon>
+</a>
+<a class="action-btn text-danger-500" href="{{ route('documents.reject', ['document' => $document]) }}">
+    <iconify-icon icon="mdi:cancel-bold"></iconify-icon>
+</a>
+
+
         @endhasrole
-    @elseif ($document->isComplete())
-        <span class="badge bg-success-500 text-white capitalize inline-flex items-center">Aprobado</span>
-    @endif
-    @if (!$document->isWaiting())
+    @elseif ($document->isAccepted())
+    <span class="badge bg-success-500 text-white capitalize inline-flex items-center">Aceptado</span>
+@elseif ($document->isRejected())
+    <span class="badge bg-danger-500 text-white capitalize inline-flex items-center">Rechazado</span>
+@endif
+
+    @if (!$document->isOpen())
         <a class="action-btn" href="{{ route('documents.download', ['document' => $document]) }}">
             <iconify-icon icon="ic:baseline-download"></iconify-icon>
         </a>

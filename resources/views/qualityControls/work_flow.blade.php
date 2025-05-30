@@ -71,6 +71,10 @@
                         documentos {{-- <iconify-icon icon="formkit:arrowright" /> --}}</a>
                 </div>
                 <div class="flex gap-11 mt-4 px-3 max-md:hidden min-h-[500px]">
+
+
+
+
                     {{--  --}}
                     <div class="card w-full">
                         <div class="card-body flex flex-col p-6">
@@ -130,7 +134,7 @@
                                                 @foreach ($fase->documents as $item)
                                                     <x-file-picker :document="$item" :fileId="'input-file-' . $loop->iteration" :fileName="'files[' . $item->id . ']'" />
                                                 @endforeach
-                                                @if ($fase->isWaiting())
+                                                @if ($fase->isOpen()|| $fase->isRejected())
                                                     @hasrole('client')
                                                         <button type="submit"
                                                             class="btn btn-primary btn-sm mt-3">Subir</button>
@@ -243,7 +247,11 @@
                             </div>
                         </div>
                     </div>
-                    <div class="card min-w-[400px] h-fit max-w-[400px] order-first">
+
+
+
+
+                    <div class="card min-w-[400px] h-fit max-w-[400px] order-second">
                         <div class="card-header">
                             <h4 class="card-title">{{ $fase->name }}</h4>
                         </div>

@@ -32,7 +32,7 @@ class DocumentRequest extends FormRequest
 
     protected function prepareForValidation()
     {
-        $status = Status::where('key', 'waiting')->first();
+        $status = Status::where('key', 'waiting_review')->first();
         $this->merge([
             'status_id' => $this->method() == 'POST' ?  $status->id : $this->status_id ?? $status->id
         ]);

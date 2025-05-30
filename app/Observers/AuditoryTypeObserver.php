@@ -2,6 +2,7 @@
 
 namespace App\Observers;
 
+use App\Enums\StatusEnum;
 use App\Models\AuditoryType;
 use App\Models\Fase;
 use App\Models\Document;
@@ -19,7 +20,7 @@ class AuditoryTypeObserver
      */
     public function created(AuditoryType $auditoryType)
     {
-        $status = Status::where('key', 'waiting')->first();
+        $status = Status::where('key', StatusEnum::Open->value)->first();
         Fase::create([
             'name' => 'Fase 1', 'description' => 'Descripcion de la fase 1', 'auditory_type_id' => $auditoryType->id, 'status_id' =>  $status->id
         ]);

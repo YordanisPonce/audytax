@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\StatusEnum;
 use App\Http\Requests\DocumentRequest;
 use App\Models\Document;
 use App\Models\Fase;
@@ -95,11 +96,28 @@ class DocumentController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function store(DocumentRequest $request)
-    {
+{
         $request['url'] = $this->upload($request->doc, 'documents');
         $fase = Fase::find($request->fase_id);
         $request['quality_control_id'] = $fase->qualityControl->id ?? null;
         $document = Document::create($request->only('name', 'url', 'fase_id', 'description', 'quality_control_id', 'status_id'));
+        $qcId = $fase->qualityControl->id ?? null;
+
+         // Si lo crea admin/consultor, estado OPEN; si lo sube cliente, esperando revisión
+        $initialKey = auth()->user()->hasRole('client')
+                    ? StatusEnum::WaitingReview->value
+                    : StatusEnum::Open->value;
+
+        $statusId = Status::where('key',$initialKey)->first()->id;
+
+        $document = Document::create([
+            'name'               => $request->name,
+            'url'                => $request['url'],
+            'description'        => $request->description,
+            'fase_id'            => $fase->id,
+            'quality_control_id' => $qcId,
+            'status_id'          => $statusId,
+        ]);
 
         // Si viene desde plantilla
     if ($request->has('auditorytype')) {
@@ -141,36 +159,37 @@ class DocumentController extends Controller
     public function edit(Request $request, Document $document)
     {
         $faseId = $request->get('fase');
-        $breadcrumbsItems = [
-            [
-                'name' => 'Auditory Type',
-                'url' => route('auditoryTypes.index'),
-                'active' => false
-            ],
-            [
-                'name' => __("Fases"),
-                'url' => route('fases.show', ['fase' => $document->fase]),
-                'active' => false
-            ],
-            [
-                'name' => 'Edit',
-                'url' => '#',
-                'active' => true
-            ],
-        ];
+         $fase = Fase::findOrFail($faseId);
+        $qc = $fase->qualityControl;
+
+         // igual lógica breadcrumbs que en create()
+        if ($qc) {
+            $breadcrumbsItems = [
+                ['name'=>'Auditoría','url'=>route('qualityControls.index'),'active'=>false],
+                ['name'=>'Fases','url'=>route('qualityControls.show',$qc),'active'=>false],
+                ['name'=>'Editar','url'=>'#','active'=>true],
+            ];
+        } else {
+            $breadcrumbsItems = [
+                ['name'=>'Plantilla de Auditoría','url'=>route('auditoryTypes.index'),'active'=>false],
+                ['name'=>'Fases','url'=>route('auditoryTypes.show',$fase->auditoryType),'active'=>false],
+                ['name'=>'Editar','url'=>'#','active'=>true],
+            ];
+        }
+
         $qualityControl = null;
         $fase = Fase::find($faseId);
         if ($fase) {
             $qualityControl = Fase::find($faseId)->qualityControl;
         }
 
-        return view('documents.edit', [
-            'document' => $document,
-            'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => 'Editar',
-            "fases" => Fase::all(),
-            "statuses" => Status::all(),
-            'qualityControl' => $qualityControl,
+       return view('documents.edit', [
+            'document'       => $document,
+            'breadcrumbItems'=> $breadcrumbsItems,
+            'pageTitle'      => __('Editar Documento'),
+            'fases'          => Fase::all(),
+            'statuses'       => Status::all(),
+            'qualityControl' => $qc,
         ]);
     }
 
@@ -255,7 +274,7 @@ class DocumentController extends Controller
     {
         if ($request->hasFile('files')) {
             $fase = Fase::find($faseId);
-            $status = Status::where('key', 'processing')->first();
+            $status = Status::where('key', 'waiting_review')->first();
             foreach ($request->file('files') as $key => $value) {
                 $orignalName = $value->getClientOriginalName();
                 $path = $this->upload($value, 'documents');
@@ -267,14 +286,26 @@ class DocumentController extends Controller
         return redirect()->back();
     }
 
-    public function markAsComplete(Document $document)
+     // --- Métodos específicos para cambiar estado ---
+    public function markAsWaitingReview(Document $document)
     {
-        $status = Status::where('key', 'complete')->first();
-        if (!$status)
-            return redirect()->back();
+        $id = Status::where('key',StatusEnum::WaitingReview->value)->first()->id;
+        $document->update(['status_id'=>$id]);
+        return back();
+    }
 
-        $document->update(['status_id' => $status->id]);
-        return redirect()->back();
+    public function markAsAccepted(Document $document)
+    {
+        $id = Status::where('key',StatusEnum::Accepted->value)->first()->id;
+        $document->update(['status_id'=>$id]);
+        return back();
+    }
+
+    public function markAsRejected(Document $document)
+    {
+        $id = Status::where('key',StatusEnum::Rejected->value)->first()->id;
+        $document->update(['status_id'=>$id]);
+        return back();
     }
 
     public function cancelDocument(Document $document)

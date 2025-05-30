@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\StatusEnum;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Document;
@@ -41,7 +42,7 @@ class QualityControl extends Model
     {
         $total = $this->fases()->count();
         $part = $this->fases()->whereHas('status', function ($query) {
-            $query->where('key', 'complete');
+            $query->where('key', 'accepted');
         })->count();
         return number_format(($part * 100) / $total);
     }
@@ -56,35 +57,38 @@ class QualityControl extends Model
         return $this->hasMany(Comment::class, 'quality_control_id');
     }
 
-    public function updateStatus()
-    {
-        $fasesCount = $this->fases()->count();
-
-        $procesingFases = $this->fases()->whereHas('status', function ($query) {
-            $query->where('label', 'processing');
-        })->count();
-
-        $completeFases = $this->fases()->whereHas('status', function ($query) {
-            $query->where('label', 'complete');
-        })->count();
-
-        $cancelFases = $this->fases()->whereHas('status', function ($query) {
-            $query->where('label', 'cancel');
-        })->count();
-
-        $status = 1;
-        if ($procesingFases == $fasesCount) {
-            $status = Status::where('key', 'processing')->first()->id ?: 1;
-            //Lo pongo en procesando
-        } else if ($completeFases == $fasesCount) {
-            $status = Status::where('key', 'complete')->first()->id ?: 1;
-            //Lo pongo en completado
-        } else if ($cancelFases == $fasesCount) {
-            $status = Status::where('key', 'cancel')->first()->id ?: 1;
-        }
-        $this->status_id = $status;
-        $this->update();
+   public function updateStatus(): void
+{
+    // Traemos todos los documentos asociados
+    $docs = $this->documents()->with('status')->get();
+    if ($docs->isEmpty()) {
+        // Sin documentos, mantenemos 'open'
+        $newKey = StatusEnum::Open->value;
     }
+    // 1) Si hay alguno rechazado
+    elseif ($docs->contains(fn($d) => $d->status->key === StatusEnum::Rejected->value)) {
+        $newKey = StatusEnum::Rejected->value;
+    }
+    // 2) Si hay alguno esperando revisión
+    elseif ($docs->contains(fn($d) => $d->status->key === StatusEnum::WaitingReview->value)) {
+        $newKey = StatusEnum::WaitingReview->value;
+    }
+    // 3) Si todos están aceptados
+    elseif ($docs->every(fn($d) => $d->status->key === StatusEnum::Accepted->value)) {
+        $newKey = StatusEnum::Accepted->value;
+    }
+    // 4) Caso contrario (p.ej. recién creado) → 'open'
+    else {
+        $newKey = StatusEnum::Open->value;
+    }
+
+    // Buscamos la ID del status y actualizamos solo si cambió
+    $status = Status::where('key', $newKey)->first();
+    if ($status && $this->status_id !== $status->id) {
+        $this->status_id = $status->id;
+        $this->save();
+    }
+}
 
     public function getCount()
     {
@@ -96,11 +100,24 @@ class QualityControl extends Model
     }
 
     public function getActiveFase()
-    {
-        return $this->fases()->whereHas('status', function ($query) {
-            $query->where('key', 'waiting');
-        })->first() ?: $this->fases()->whereHas('status', function ($query) {
-            $query->where('key', 'pending');
-        })->first() ?: $this->fases()->latest()->first();
+{
+    // 1) La primera fase aún “open” (sin que el cliente suba nada)
+    $open = $this->fases()
+        ->whereHas('status', fn($q) => $q->where('key', StatusEnum::Open->value))
+        ->first();
+    if ($open) {
+        return $open;
     }
+
+    // 2) La primera fase “waiting_review” (cliente ya subió, pendiente revisión)
+    $waitingReview = $this->fases()
+        ->whereHas('status', fn($q) => $q->where('key', StatusEnum::WaitingReview->value))
+        ->first();
+    if ($waitingReview) {
+        return $waitingReview;
+    }
+
+    // 3) Si todo lo anterior falla, devuelve la última fase creada
+    return $this->fases()->latest()->first();
+}
 }

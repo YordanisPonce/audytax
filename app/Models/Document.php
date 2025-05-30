@@ -26,18 +26,23 @@ class Document extends Model
         return $this->belongsTo(Status::class);
     }
 
-    public function isWaiting()
+      public function isOpen(): bool
     {
-        return $this->status->key == 'waiting';
+        return $this->status->key === 'open';
     }
 
-    public function isProcessing()
+     public function isWaitingReview(): bool
     {
-        return $this->status->key == 'processing';
+        return $this->status->key === 'waiting_review';
     }
 
-    public function isComplete()
+    public function isAccepted(): bool
     {
-        return $this->status->key == 'complete';
+        return $this->status->key === 'accepted';
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->status->key === 'rejected';
     }
 }

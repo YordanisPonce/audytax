@@ -130,7 +130,7 @@ class QualityControlController extends Controller
      */
     public function store(QualityControlRequest $request)
     {
-        $status = Status::where('key', 'waiting')->first();
+        $status = Status::where('key', 'waiting_review')->first();
         $qualityControl = QualityControl::create($request->only('name', 'description', 'auditory_type_id') + ['status_id' => $status->id ?: 1]);
         $ids = array_merge($request->consultants ?: [], $request->clients ?: []);
         $qualityControl->users()->attach($ids);
@@ -281,7 +281,7 @@ class QualityControlController extends Controller
                 $query->where('id', $faseId);
             } else {
                 $query->whereHas('documents', function ($subquery) {
-                    $status = Status::where('key', 'waiting')->first();
+                    $status = Status::where('key', 'waiting_review')->first();
                     $subquery->where('status_id', $status->id);
                 });
             }
