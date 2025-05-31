@@ -76,9 +76,7 @@
         </div>
 
         {{-- Documentos --}}
-        {{-- Documentos --}}
-        {{-- Documentos --}}
-<div id="collapse-fase-{{ $fase->id }}" class="p-4 bg-white dark:bg-slate-700 hidden"> {{-- ✅ CAMBIO --}}
+<div id="collapse-fase-{{ $fase->id }}" class="p-4 bg-white dark:bg-slate-700"> {{-- ✅ CAMBIO --}}
 
           {{-- Botón agregar documento --}}
           <div class="flex justify-end mb-2">
@@ -87,7 +85,7 @@
                             href="{{ route('documents.create') . '?' . http_build_query(['fase' => $fase->id, 'auditorytype' => $auditoryType->id]) }}">
                             <iconify-icon icon="ic:round-plus" class="text-lg mr-1">
                             </iconify-icon>
-                            {{ __('New') }}
+                            {{-- {{ __('New') }} --}}
                         </a>
                     @endcan
           </div>
@@ -100,7 +98,7 @@
                 <li class="flex justify-between items-center bg-gray-50 dark:bg-slate-800 p-2 rounded">
                   <div class="flex-1">
                     <span class="font-medium">{{ $doc->name }}</span>
-                    <span class="ml-4 text-sm text-gray-500">{{ $doc->status->label ?? 'Sin estado' }}</span>
+                    {{-- <span class="ml-4 text-sm text-gray-500">{{ $doc->status->label ?? 'Sin estado' }}</span> --}}
                   </div>
                   <div class="flex items-center space-x-2">
                     @can('document update')

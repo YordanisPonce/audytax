@@ -44,6 +44,7 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
 
     // fase
     Route::resource('fases', FaseController::class);
+    
     // document
     Route::resource('documents', DocumentController::class);
     Route::controller(DocumentController::class)->prefix('documents')->as('documents.')->group(function () {

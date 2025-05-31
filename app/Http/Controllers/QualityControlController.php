@@ -171,22 +171,42 @@ class QualityControlController extends Controller
         $perPage = $request->get('per_page', 10);
         $sort = $request->get('sort');
         $fases = QueryBuilder::for(Fase::class)
-            ->allowedSorts(['name'])
-            ->with('auditoryType', 'qualityControl', 'status')
-            ->withCount('documents')
-            ->where('quality_control_id', $qualityControl->id)
-            ->latest()
-            ->paginate($perPage)
-            ->appends(['per_page' => $perPage, 'q' => $q, 'sort' => $sort]);
+        ->where('quality_control_id', $qualityControl->id)
+        ->with('documents.status')
+        ->latest()
+        ->get();
 
+     
+    // Calculamos el total de documentos por estado en todas las fases:
+    $statusCounts = \App\Models\Document::query()
+        ->whereIn('fase_id', $fases->pluck('id'))
+        ->selectRaw('status_id, count(*) as count')
+        ->groupBy('status_id')
+        ->pluck('count', 'status_id');
 
-        return view('fases.index', [
-            'fases' => $fases,
-            'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => 'Fases del control de calidad ' . $qualityControl->name,
-            'auditoryId' => $qualityControl->auditoryType->id,
-            'qualityControlId' => $qualityControl->id
-        ]);
+    // Mapear IDs de status a tu enum
+    $statusKeys = \App\Models\Status::pluck('key', 'id'); // [1=>'open',2=>'accepted',...]
+    $counts = [
+        'open'           => 0,
+        'waiting_review' => 0,
+        'accepted'       => 0,
+        'rejected'       => 0,
+    ];
+    foreach ($statusCounts as $statusId => $cnt) {
+        $key = $statusKeys[$statusId] ?? null;
+        if ($key && isset($counts[$key])) {
+            $counts[$key] = $cnt;
+        }
+    }
+
+    return view('qualityControls.show', [
+        'fases'         => $fases,
+        'qualityControl'=> $qualityControl,
+        'breadcrumbItems'=> $breadcrumbsItems,
+        'pageTitle'     => 'Fases de la Auditoria',
+        'statusCounts'  => $counts,
+        // si necesitas comments/activity, pásalos también…
+    ]);
     }
 
     /**

@@ -151,33 +151,66 @@ class FaseController extends Controller
      * @param  \App\Models\Fase  $fase
      * @return \Illuminate\Http\Response
      */
-    public function edit(Fase $fase)
-    {
+   public function edit(Request $request, Fase $fase)
+{
+    // 1) Determinar si estamos dentro de un QualityControl
+    $qcId = $request->query('qualityControl'); // null si no existe
+    $qualityControl = $qcId ? $fase->qualityControl : null;
+
+    // 2) Breadcrumbs dinámicos
+    if ($qualityControl) {
+        // Vengo desde QualityControl → Fases → Editar
         $breadcrumbsItems = [
             [
-                'name' => 'Auditory Type',
-                'url' => route('auditoryTypes.index'),
-                'active' => false
+                'name'   => __("Auditoría"),
+                'url'    => route('qualityControls.index'),
+                'active' => false,
             ],
             [
-                'name' => __("Fases"),
-                'url' => route('auditoryTypes.show', ['auditoryType' => $fase->auditoryType]),
-                'active' => false
+                'name'   => __("Fases"),
+                'url'    => route('qualityControls.show', $qualityControl),
+                'active' => false,
             ],
             [
-                'name' => 'Edit',
-                'url' => '#',
-                'active' => true
+                'name'   => __("Editar"),
+                'url'    => '#',
+                'active' => true,
             ],
         ];
-
-        return view('fases.edit', [
-            'fase' => $fase,
-            'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => 'Editar',
-            "auditoryTypes" => AuditoryType::all()
-        ]);
+    } else {
+        // Vengo desde Plantilla de Auditoría → Fases → Editar
+        $breadcrumbsItems = [
+            [
+                'name'   => __("Plantilla de Auditoría"),
+                'url'    => route('auditoryTypes.index'),
+                'active' => false,
+            ],
+            [
+                'name'   => __("Fases"),
+                'url'    => route('auditoryTypes.show', $fase->auditoryType),
+                'active' => false,
+            ],
+            [
+                'name'   => __("Editar"),
+                'url'    => '#',
+                'active' => true,
+            ],
+        ];
     }
+
+    // 3) Devolver vista con los datos necesarios
+    return view('fases.edit', [
+        'fase'            => $fase,
+        'breadcrumbItems' => $breadcrumbsItems,
+        'pageTitle'       => __("Editar Fase"),
+        'auditoryTypes'   => AuditoryType::all(),
+        // Le pasamos el valor de QC para que el blade lo inyecte
+        'qualityControl'  => $qualityControl,
+        // Si venimos de plantilla, también pasamos el auditorytype
+        'auditoryType'    => $request->query('auditorytype'),
+    ]);
+}
+
 
     /**
      * Update the specified resource in storage.
@@ -186,12 +219,15 @@ class FaseController extends Controller
      * @param  \App\Models\Fase  $fase
      * @return \Illuminate\Http\Response
      */
-    public function update(FaseRequest $request, Fase $fase)
-    {
-        $fase->update($request->only($fase->getFillable()));
-        $params = $this->getParams($request, $fase);
-        return redirect()->route($params['route'], $params['param'])->with('message', 'Fase actualizada satisfactoriamente');
-    }
+  public function update(FaseRequest $request, Fase $fase)
+{
+    $fase->update($request->only($fase->getFillable()));
+
+    $params = $this->getParams($request, $fase);
+    return redirect()->route($params['route'], $params['param'])
+                     ->with('message', 'Fase actualizada satisfactoriamente');
+}
+
 
     /**
      * Remove the specified resource from storage.
@@ -205,13 +241,30 @@ class FaseController extends Controller
         return redirect()->back()->with('message', 'Tipo de auditoría creada satisfactoriamente');
     }
 
-    private function getParams($request, $fase)
-    {
-        $route = !$request->quality_control_id ? 'auditoryTypes.show' : 'qualityControls.show';
-        $param = !$fase->qualityControl ? ['auditoryType' => $fase->auditoryType] : ['qualityControl' => $fase->qualityControl];
+   private function getParams(Request $request, Fase $fase)
+{
+    // 1) Si viene desde QualityControl (campo oculto: quality_control_id)
+    if ($qcId = $request->input('quality_control_id')) {
         return [
-            'route' => $route,
-            'param' => $param
+            'route' => 'qualityControls.show',
+            'param' => ['qualityControl' => $qcId],
         ];
     }
+
+    // 2) Si viene desde AuditoryType (campo oculto: auditorytype)
+    if ($audId = $request->input('auditorytype')) {
+        return [
+            'route' => 'auditoryTypes.show',
+            'param' => ['auditoryType' => $audId],
+        ];
+    }
+
+    // 3) Caso fallback: índice de fases
+    return [
+        'route' => 'fases.index',
+        'param' => [],
+    ];
+}
+
+
 }

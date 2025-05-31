@@ -76,6 +76,17 @@
                                 <tbody
                                     class="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700">
                                     @forelse ($qualityControls as $qualityControl)
+                                            @php
+        $statusColors = [
+            'open'           => 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100',
+            'waiting_review' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100',
+            'accepted'       => 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
+            'rejected'       => 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100',
+        ];
+        $key = $qualityControl->status->key ?? null;
+        $badgeClasses = $statusColors[$key]
+                         ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    @endphp
                                         <tr>
                                             <td class="table-td">
                                                 <a href="{{ route('qualityControls.show', $qualityControl) }}">{{ $qualityControl->name }}</a>
@@ -93,9 +104,12 @@
                                             <td class="table-td">
                                                 {{ $qualityControl->consultant_users_count }}
                                             </td>
+                                             {{-- Aquí mostramos el badge --}}
                                             <td class="table-td">
-                                                {{ $qualityControl->status->label }}
-                                            </td>
+                                            <span class="inline-flex items-center px-2 py-1 text-sm font-medium rounded {{ $badgeClasses }}">
+                                              {{ $qualityControl->status->label }}
+                                            </span>
+                                             </td>
                                             <td class="table-td">
                                                 <div class="flex space-x-3 rtl:space-x-reverse">
                                                     {{-- view --}}

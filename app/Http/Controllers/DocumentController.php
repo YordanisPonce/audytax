@@ -100,7 +100,7 @@ class DocumentController extends Controller
         $request['url'] = $this->upload($request->doc, 'documents');
         $fase = Fase::find($request->fase_id);
         $request['quality_control_id'] = $fase->qualityControl->id ?? null;
-        $document = Document::create($request->only('name', 'url', 'fase_id', 'description', 'quality_control_id', 'status_id'));
+        
         $qcId = $fase->qualityControl->id ?? null;
 
          // Si lo crea admin/consultor, estado OPEN; si lo sube cliente, esperando revisión
@@ -127,9 +127,10 @@ class DocumentController extends Controller
     }
 
     // Si viene desde control de calidad
-    if ($request->has('qualityControl')) {
+     // Redirección si viene de Control de Calidad
+    if ($request->filled('qualityControl')) {
         return redirect()
-            ->to(route('fases.show', ['fase' => $document->fase->id]) . '?qualityControl=' . $request->get('qualityControl'))
+            ->route('qualityControls.show', $qcId)
             ->with('message', 'Documento agregado satisfactoriamente');
     }
 
@@ -212,11 +213,15 @@ class DocumentController extends Controller
             ->with('message', 'Documento actualizado satisfactoriamente');
     }
 
- if ($request->has('qualityControl')) {
-    return redirect()
-        ->to(route('fases.show', ['fase' => $document->fase->id]) . '?qualityControl=' . $request->get('qualityControl'))
-        ->with('message', 'Documento actualizado satisfactoriamente');
-}
+ // Redirección si viene de Control de Calidad
+    if ($request->filled('qualityControl')) {
+        // Tomamos el mismo qcId que guardamos en store()
+        $qcId = $document->fase->qualityControl->id ?? null;
+
+        return redirect()
+            ->route('qualityControls.show', $qcId)
+            ->with('message', 'Documento actualizado satisfactoriamente');
+    }
 
 
     // Si viene desde quality control
