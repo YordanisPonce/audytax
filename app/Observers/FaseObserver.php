@@ -46,7 +46,10 @@ class FaseObserver
      */
     public function deleted(Fase $fase)
     {
-        //
+        if ($fase && isset($fase->qualityControl)) {
+            $label = $fase->status->label;
+            $this->notify("Ha borrado la fase $fase->name en el estado de $label", $fase->qualityControl);
+        }
     }
 
     /**

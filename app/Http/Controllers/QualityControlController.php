@@ -167,6 +167,21 @@ class QualityControlController extends Controller
             ],
         ];
 
+        // 1) Obtener todas las entradas de historial de este QC, ordenadas de más reciente a más antiguo
+    $histories = $qualityControl
+                    ->histories()           // relación hasMany(History)
+                    ->with('user')          // para que en la vista puedas acceder a $item->user
+                    ->orderBy('created_at', 'desc')
+                    ->get();
+
+     // 2) Comentarios (Comments)
+    //    Cargamos eager 'user' y, si tienen respuestas anidadas, también las cargamos
+    $comments = $qualityControl
+                    ->comments()                      // relación hasMany(Comment)
+                    ->with(['user', 'comments.user']) // trae al autor y al autor de cada respuesta, si hay replies
+                    ->orderBy('created_at','desc')    // últimos primero
+                    ->get();
+
         $q = $request->get('q');
         $perPage = $request->get('per_page', 10);
         $sort = $request->get('sort');
@@ -202,7 +217,9 @@ class QualityControlController extends Controller
     return view('qualityControls.show', [
         'fases'         => $fases,
         'qualityControl'=> $qualityControl,
+        'histories'      => $histories,
         'breadcrumbItems'=> $breadcrumbsItems,
+         'comments'       => $comments,
         'pageTitle'     => 'Fases de la Auditoria',
         'statusCounts'  => $counts,
         // si necesitas comments/activity, pásalos también…

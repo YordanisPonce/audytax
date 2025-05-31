@@ -30,7 +30,7 @@ class QualityControlObserver
             $newPhase->createDocuments($phase);
             return $newPhase;
         });
-        $this->notify('Ha creado un nuevo control de calidad', $qualityControl);
+        $this->notify('Ha creado una nueva Auditoria', $qualityControl);
     }
 
     /**
@@ -42,7 +42,7 @@ class QualityControlObserver
     public function updated(QualityControl $qualityControl)
     {
         $label = $qualityControl->status->label;
-        $message = "Ha cambiado el control de calidad $qualityControl->name a el estado de: $label";
+        $message = "Ha actualizado la auditoria  $qualityControl->name";
         $this->notify($message, $qualityControl);
     }
 

@@ -18,14 +18,14 @@
       
       {{-- 1) El acordeón ocupa 2/3 en pantallas grandes --}}
       {{-- 1) El acordeón ocupa 2/3 en pantallas grandes --}}
-      <div class="lg:col-span-2 space-y-4">
+      <div class="lg:col-span-2 space-y-4 ">
   {{-- Botón agregar fase --}}
   
-<div class="flex justify-end mb-4">
+<div class="flex justify-end mb-4 ">
   @can('fase create')
     <a 
       href="{{ route('fases.create') . '?' . $queryParams }}" 
-      class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
+      class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2 !px-3 bg-gray-100 dark:bg-gray-800"
     >
       <iconify-icon icon="ic:round-plus" class="text-lg mr-1"></iconify-icon>
       {{ __('Nueva Fase') }}
@@ -208,17 +208,18 @@
 
 
         {{-- 2) Componente de pestañas al lado --}}
-        <div class="bg-white dark:bg-slate-800 rounded-md shadow-sm">
+        <div class="bg-white dark:bg-slate-800 rounded-md shadow-sm h-96 flex flex-col">
           {{-- Tabs --}}
           <nav class="flex border-b dark:border-slate-700">
             <button data-tab="status"
-                    class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-blue-500 text-blue-600">
+                    class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-blue-500 text-blue-600 dark:text-gray-300">
               Estado
             </button>
             <button data-tab="comments"
-                    class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
-              Comentarios (0)
-            </button>
+        class="tab-button whitespace-nowrap px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+  Comentarios ({{ $comments->count() }})
+</button>
+
             <button data-tab="activity"
                     class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
               Actividad
@@ -226,7 +227,7 @@
           </nav>
 
           {{-- Panels --}}
-          <div class="p-4">
+          <div class="p-4 dark:text-gray-300">
             {{-- ESTADO --}}
             <div id="panel-status" class="space-y-3 dark:text-gray-300">
               @foreach([
@@ -245,15 +246,106 @@
               @endforeach
             </div>
 
-            {{-- COMENTARIOS --}}
-            <div id="panel-comments" class="hidden text-gray-600 dark:text-gray-300">
-              <p>No hay comentarios aún.</p>
-            </div>
+             {{-- COMENTARIOS --}}
+      <div id="panel-comments" class="hidden text-gray-600 dark:text-gray-300 h-full flex flex-col">
+        <div class="flex-1 overflow-y-auto space-y-4 pr-2">
+          @if($comments->isEmpty())
+            <p class="text-sm italic text-center">{{ __('No hay comentarios para esta auditoría.') }}</p>
+          @else
+            @foreach($comments as $comment)
+              <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
+                <div class="flex items-center space-x-2">
+                  <img
+                    src="{{ $comment->user->avatar ?: Avatar::create($comment->user->name)->setDimension(400)->setFontSize(240)->toBase64() }}"
+                    class="h-8 w-8 rounded-full object-cover"
+                    alt="Avatar de {{ $comment->user->name }}"
+                  >
+                  <div class="flex flex-col">
+                    <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                      {{ $comment->user->name }}
+                    </span>
+                    <span class="text-xs text-gray-500 dark:text-gray-400">
+                      {{ $comment->created_at }}
+                    </span>
+                  </div>
+                </div>
+                <p class="mt-1 text-gray-700 dark:text-gray-300 text-sm">
+                  {{ $comment->comment }}
+                </p>
 
-            {{-- ACTIVIDAD --}}
-            <div id="panel-activity" class="hidden text-gray-600 dark:text-gray-300">
-              <p>Última actividad: {{ $qualityControl->updated_at->diffForHumans() }}</p>
+                {{-- Si el comentario tiene respuestas anidadas (children), las mostramos aquí --}}
+                @if($comment->comments->isNotEmpty())
+                  <div class="mt-2 pl-8 space-y-2">
+                    @foreach($comment->comments as $reply)
+                      <div class="flex items-start space-x-2">
+                        <img
+                          src="{{ $reply->user->avatar ?: Avatar::create($reply->user->name)->setDimension(400)->setFontSize(240)->toBase64() }}"
+                          class="h-6 w-6 rounded-full object-cover mt-1"
+                          alt="Avatar de {{ $reply->user->name }}"
+                        >
+                        <div>
+                          <div class="flex items-center space-x-1">
+                            <span class="font-medium text-gray-700 dark:text-gray-200 text-sm">
+                              {{ $reply->user->name }}
+                            </span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                              {{ $reply->created_at }}
+                            </span>
+                          </div>
+                          <p class="text-gray-700 dark:text-gray-300 text-sm">
+                            {{ $reply->comment }}
+                          </p>
+                        </div>
+                      </div>
+                    @endforeach
+                  </div>
+                @endif
+              </div>
+            @endforeach
+          @endif
+        </div>
+
+        {{-- (Opcional) Paginación si usas ->paginate() en lugar de ->get() --}}
+        {{-- <div class="mt-2">
+          {{ $comments->links() }}
+        </div> --}}
+      </div>
+
+           {{-- ACTIVIDAD --}}
+{{-- ACTIVIDAD --}}
+<div id="panel-activity" class="hidden text-gray-600 dark:text-gray-300">
+  {{-- Definimos un contenedor con altura fija y scroll interno --}}
+  <div class="h-64 overflow-y-auto space-y-4">
+    @if($histories->isEmpty())
+      <p class="text-sm italic text-center">{{ __('No hay actividad registrada aún.') }}</p>
+    @else
+      @foreach($histories as $item)
+        <div class="mb-4 border-b border-gray-200 dark:border-gray-700 pb-2">
+          <div class="flex items-center space-x-2">
+            <img
+              src="{{ $item->user->avatar ?: Avatar::create($item->user->name)->setDimension(400)->setFontSize(240)->toBase64() }}"
+              class="h-8 w-8 rounded-full object-cover"
+              alt="Avatar de {{ $item->user->name }}"
+            >
+            <div class="flex flex-col">
+              <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                {{ $item->user->name }}
+              </span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">
+                {{ $item->created_at }}
+              </span>
             </div>
+          </div>
+          <p class="mt-1 text-gray-700 dark:text-gray-300 text-sm">
+            {{ $item->description }}
+          </p>
+        </div>
+      @endforeach
+    @endif
+  </div>
+</div>
+
+
           </div>
         </div>
     </div>

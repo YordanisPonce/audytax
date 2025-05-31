@@ -83,7 +83,10 @@ class DocumentObserver
      */
     public function deleted(Document $document)
     {
-        //
+         if ($document->qualityControl) {
+            $message = "Ha borrado un documento";
+            $this->notify($message, $document->qualityControl);
+        }
     }
 
     /**
