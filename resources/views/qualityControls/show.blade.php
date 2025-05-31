@@ -45,6 +45,7 @@
                     Colapsar fases
                 </button>
             </div>
+            
             {{-- Botón "Nueva Fase" --}}
             <div class="flex justify-start mb-4">
                 @can('fase create')

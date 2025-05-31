@@ -118,6 +118,58 @@
 
             {{-- DERECHA: modo oscuro, menú de usuario, etc. --}}
             <div class="nav-tools flex items-center lg:space-x-5 space-x-3 rtl:space-x-reverse leading-0">
+                @hasrole('admin')
+    <!-- Botón campanita -->
+    <div class="relative">
+        <button id="notifBtn" …>
+            <iconify-icon icon="heroicons-outline:bell" class="text-xl …"></iconify-icon>
+        </button>
+
+        <!-- Dropdown oculto inicialmente -->
+        <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 shadow-lg rounded-lg z-50">
+            <div class="px-4 py-2 border-b dark:border-slate-700">
+                <span class="font-semibold text-gray-800 dark:text-gray-200">{{ __('Notifications') }}</span>
+            </div>
+
+            @if($notifications->isEmpty())
+                <div class="px-4 py-3 text-gray-600 dark:text-gray-400 text-sm">
+                    {{ __('No new notifications.') }}
+                </div>
+            @else
+                <ul>
+                    @foreach($notifications as $note)
+                        <li class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+                            <div class="flex items-start space-x-2">
+                                <img
+                                    src="{{ $note->user->avatar ?: Avatar::create($note->user->name)->setDimension(60)->setFontSize(40)->toBase64() }}"
+                                    class="h-8 w-8 rounded-full object-cover"
+                                    alt="Avatar"
+                                >
+                                <div class="flex-1">
+                                    <p class="text-sm text-gray-800 dark:text-gray-200">
+                                        {{ $note->description }}
+                                    </p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400">
+                                        {{-- {{ $note->created_at->diffForHumans() }} --}}
+                                    </p>
+                                </div>
+                            </div>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
+            {{-- <div class="px-4 py-2 border-t dark:border-slate-700 text-right">
+                <a href="{{ route('qualityControls.index') }}"
+                   class="text-blue-600 hover:underline text-sm">
+                    {{ __('View all') }}
+                </a>
+            </div> --}}
+        </div>
+    </div>
+@endhasrole
+
+                
                 <x-dark-light />
                 <x-nav-user-dropdown />
                 <button class="smallDeviceMenuController md:hidden block leading-0">
@@ -138,3 +190,30 @@
         }
     }
 </style>
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn      = document.getElementById('notifBtn');
+        const dropdown = document.getElementById('notifDropdown');
+
+        if (btn && dropdown) {
+            btn.addEventListener('click', e => {
+                e.stopPropagation();
+                dropdown.classList.toggle('hidden');
+            });
+
+            document.addEventListener('click', () => {
+                if (!dropdown.classList.contains('hidden')) {
+                    dropdown.classList.add('hidden');
+                }
+            });
+
+            dropdown.addEventListener('click', e => {
+                e.stopPropagation();
+            });
+        }
+    });
+</script>
+@endpush
+

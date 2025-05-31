@@ -2,7 +2,8 @@
 
 namespace App\Providers;
 
-use Doctrine\DBAL\Schema\View;
+// use Doctrine\DBAL\Schema\View;
+use Illuminate\Support\Facades\View;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
@@ -46,5 +47,19 @@ class AppServiceProvider extends ServiceProvider
         QualityControl::observe(QualityControlObserver::class);
         Document::observe(DocumentObserver::class);
         Comment::observe(CommentObserver::class);
-    }
+        // =====================================================================================
+    // View Composer: inyecta las últimas entradas de History a “components.dashboard-header”
+    // =====================================================================================
+    View::composer('components.dashboard-header', function($view) {
+        // Obtenemos las últimas 5 entradas de History (puedes cambiar “take(5)” si deseas otra cantidad).
+        $latestHistories = \App\Models\History::with('user')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        // Con esto, en el Blade 'dashboard-header' estará disponible $notifications
+        $view->with('notifications', $latestHistories);
+    });
+}
+
 }
