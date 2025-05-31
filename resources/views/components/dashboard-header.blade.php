@@ -1,6 +1,11 @@
 {{-- resources/views/components/dashboard-header.blade.php --}}
 @props(['links']) {{-- Recibe la colección de QualityControls (u otra) --}}
 
+@php
+    $qualityControl = request()->query('qualityControl');
+    $id = last(request()->segments());
+@endphp
+
 <div class="z-[9] sticky top-0" id="app_header">
     <div class="app-header z-[999] bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-700 !ml-0">
         <div class="flex justify-between items-center h-full">
@@ -25,8 +30,11 @@
     <!-- Application Logo -->
         <x-application-logo />
     <nav class="flex space-x-4 overflow-x-auto px-4">
+        <ul class="flex space-x-4 list-none">
         {{-- Botón Inicio con mismo estilo que el resto --}}
+        <li>
         <a
+        
             href="{{ route('dashboard.index') }}"
             class="flex items-center space-x-1 px-3 py-2 rounded 
                    hover:bg-gray-100 dark:hover:bg-slate-700 
@@ -34,90 +42,74 @@
             <iconify-icon icon="heroicons-outline:home" class="text-lg"></iconify-icon>
             <span>{{ __('Inicio') }}</span>
         </a>
+        </li>
 
-        @hasrole('admin')
-            @can('user index')
-                <a
-                    href="{{ route('users.index') }}"
-                    class="flex items-center space-x-1 px-3 py-2 rounded 
-                           hover:bg-gray-100 dark:hover:bg-slate-700 
-                           {{ request()->is('users*') ? 'bg-gray-200 dark:bg-slate-600 font-semibold' : 'text-gray-700 dark:text-gray-300' }}">
-                    <iconify-icon icon="mdi:users" class="text-lg"></iconify-icon>
-                    <span>{{ __('Usuarios') }}</span>
+    @hasrole('admin')
+        @can('user index')
+            <li>
+                <a href="{{ route('users.index') }}"
+                   class=" flex items-center space-x-1 px-3 py-2 rounded 
+                   hover:bg-gray-100 dark:hover:bg-slate-700  navItem {{ request()->is('users.*') || request()->is('users*') ? 'active' : '' }}">
+                    <span class="flex items-center">
+                        <iconify-icon class="nav-icon" icon="mdi:users"></iconify-icon>
+                        <span>{{ __('Usuarios') }}</span>
+                    </span>
                 </a>
-            @endcan
+            </li>
+        @endcan
 
-            @can('auditoryType index')
-                <a
-                    href="{{ route('auditoryTypes.index') }}"
-                    class="flex items-center space-x-1 px-3 py-2 rounded 
-                           hover:bg-gray-100 dark:hover:bg-slate-700 
-                           {{ request()->is('auditoryTypes*') || request()->is('fases*') ? 'bg-gray-200 dark:bg-slate-600 font-semibold' : 'text-gray-700 dark:text-gray-300' }}">
-                    <iconify-icon icon="fluent-mdl2:compliance-audit" class="text-lg"></iconify-icon>
-                    <span>{{ __('Auditory Type') }}</span>
+        <!-- auditoryTypes -->
+        @can('auditoryType index')
+            <li>
+                <a href="{{ route('auditoryTypes.index') }}"
+                   class="flex items-center space-x-1 px-3 py-2 rounded 
+                   hover:bg-gray-100 dark:hover:bg-slate-700  navItem {{ ((request()->is('fases.*') || request()->is('fases*')) && !$qualityControl) || request()->is('auditoryTypes.*') || request()->is('auditoryTypes*') ? 'active' : '' }}">
+                    <span class="flex items-center">
+                        <iconify-icon class="nav-icon" icon="fluent-mdl2:compliance-audit"></iconify-icon>
+                        <span class="truncate">{{ __('Auditory Type') }}</span>
+                    </span>
                 </a>
-            @endcan
+            </li>
+        @endcan
 
-            @can('qualityControl index')
+        <!-- qualityControls -->
+        @can('qualityControl index')
+            <li>
+                <a href="{{ route('qualityControls.index') }}"
+                   class="flex items-center space-x-1 px-3 py-2 rounded 
+                   hover:bg-gray-100 dark:hover:bg-slate-700  navItem {{ request()->is('qualityControls.*') || request()->is('qualityControls*') || $qualityControl ? 'active' : '' }}">
+                    <span class="flex items-center">
+                        <iconify-icon class="nav-icon" icon="icon-park-twotone:inspection"></iconify-icon>
+                        <span class="truncate">{{ __('Quality Controls') }}</span>
+                    </span>
+                </a>
+            </li>
+        @endcan
+    @else
+    @isset($links)
+        @foreach($links as $link)
+            @php
+                $fases   = $link->fases->pluck('id')->toArray();
+                $isActive = $id == $link->id || (request()->is('comments*') && in_array($id, $fases));
+            @endphp
+            <li>
                 <a
-                    href="{{ route('qualityControls.index') }}"
+                    href="{{ route('qualityControls.details', ['qualityControl' => $link, 'fase' => $link->getActiveFase()]) }}"
                     class="flex items-center space-x-1 px-3 py-2 rounded 
                            hover:bg-gray-100 dark:hover:bg-slate-700 
-                           {{ request()->is('qualityControls*') ? 'bg-gray-200 dark:bg-slate-600 font-semibold' : 'text-gray-700 dark:text-gray-300' }}">
+                           {{ $isActive 
+                                ? 'bg-gray-200 dark:bg-slate-600 font-semibold' 
+                                : 'text-gray-700 dark:text-gray-300' }}">
                     <iconify-icon icon="icon-park-twotone:inspection" class="text-lg"></iconify-icon>
-                    <span>{{ __('Quality Controls') }}</span>
+                    <span class="truncate">{{ $link->name }}</span>
                 </a>
-            @endcan
-        @else
-            @foreach($links as $link)
-                @php
-                    $isActive = request()->is("qualityControls/{$link->id}*");
-                @endphp
+            </li>
+        @endforeach
+    @endisset
+@endhasrole
 
-                <div class="relative group">
-                    <a
-                        href="{{ route('qualityControls.show', $link) }}"
-                        class="flex items-center space-x-1 px-3 py-2 rounded 
-                               hover:bg-gray-100 dark:hover:bg-slate-700 
-                               {{ $isActive ? 'bg-gray-200 dark:bg-slate-600 font-semibold' : 'text-gray-700 dark:text-gray-300' }}">
-                        <iconify-icon icon="icon-park-twotone:inspection" class="text-lg"></iconify-icon>
-                        <span class="truncate max-w-[100px]">{{ $link->name }}</span>
-                        <iconify-icon icon="heroicons-outline:chevron-down" class="text-xs"></iconify-icon>
-                    </a>
+</ul>
 
-                    <ul class="absolute top-full left-0 mt-1 hidden bg-white dark:bg-slate-700 
-                               text-gray-800 dark:text-gray-200 rounded shadow-lg py-2 min-w-[180px] z-50
-                               group-hover:block">
-                        <li>
-                            <a
-                                href="{{ route('qualityControls.show', $link) }}"
-                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600 
-                                       {{ request()->is("qualityControls/{$link->id}") ? 'font-semibold' : '' }}">
-                                {{ __('Ver detalles') }}
-                            </a>
-                        </li>
-                        <li>
-                            <a
-                                href="{{ route('qualityControls.details', ['qualityControl' => $link, 'fase' => $link->getActiveFase()]) }}"
-                                class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600 
-                                       {{ request()->is("qualityControls/{$link->id}/details/{$link->getActiveFase()}") ? 'font-semibold' : '' }}">
-                                {{ __('Fase activa') }}
-                            </a>
-                        </li>
-                        @foreach($link->fases as $fase)
-                            <li>
-                                <a
-                                    href="{{ route('qualityControls.details', ['qualityControl' => $link, 'fase' => $fase->id]) }}"
-                                    class="block px-4 py-2 hover:bg-gray-100 dark:hover:bg-slate-600 
-                                           {{ request()->is("qualityControls/{$link->id}/details/{$fase->id}") ? 'font-semibold' : '' }}">
-                                    {{ $fase->name }}
-                                </a>
-                            </li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endforeach
-        @endhasrole
     </nav>
 </div>
 {{-- ... (abajo permanece igual) --}}
