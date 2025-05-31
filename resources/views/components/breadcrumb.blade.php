@@ -1,5 +1,5 @@
 @props(['breadcrumbItems' => [], 'pageTitle' => 'Default Title', 'subtitle'])
-<div class="flex items-start justify-between max-md:flex-col">
+<div class="flex items-start pl-20  justify-between max-md:flex-col">
     {{-- Breadcrumb title start --}}
     <h5 class="text-textColor font-Inter font-medium md:text-2xl mr-4 dark:text-white mb-1 sm:mb-0">
         {{ __($pageTitle) }}
@@ -10,7 +10,7 @@
     </h5>
 
     {{-- Breadcrumb list start --}}
-    <ul class="m-0 p-0 list-none">
+    <ul class="m-0 p-0 list-none pr-20">
         {{-- Home --}}
         @empty(!$breadcrumbItems)
             <li class="inline-block relative top-[3px] text-base text-primary-500 font-Inter">

@@ -4,16 +4,16 @@
 @endphp
 
 <x-app-layout>
-  <div class="mb-6">
+  <div class="mb-6 ">
     <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="$pageTitle" />
   </div>
 
   {{-- Botón agregar fase --}}
-  <div class="flex justify-end mb-4">
+  <div class="flex justify-end mb-4 px-20">
     @can('fase create')
       <a 
         href="{{ route('fases.create') . '?' . $queryParams }}" 
-        class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
+        class="btn inline-flex  justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
       >
         <iconify-icon icon="ic:round-plus" class="text-lg mr-1"></iconify-icon>
         {{ __('Nueva Fase') }}
@@ -22,7 +22,7 @@
   </div>
 
   {{-- Lista de fases tipo acordeón --}}
-  <div class="space-y-4 max-w-4xl mx-auto">
+  <div class="space-y-4  mx-auto px-20 dark:text-white">
     @foreach($fases as $fase)
       <div class="border rounded-md overflow-hidden"> {{-- ✅ CORRECTO --}}
 
@@ -91,7 +91,7 @@
           </div>
 
           @if($fase->documents->isEmpty())
-            <p class="text-sm text-gray-500 dark:text-gray-400">No hay documentos en esta fase.</p>
+            <p class="text-sm text-gray-500 dark:text-gray-300">No hay documentos en esta fase.</p>
           @else
             <ul class="space-y-2">
               @foreach($fase->documents as $doc)

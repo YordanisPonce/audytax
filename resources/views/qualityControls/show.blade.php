@@ -6,19 +6,18 @@
 @endphp
 
 <x-app-layout>
-    <div class="mb-6">
+    <div class="mb-6 ">
         <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="$pageTitle" />
     </div>
 
     
-    <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <div class="px-20 mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 dark:text-white">
       
       
       
       
       {{-- 1) El acordeón ocupa 2/3 en pantallas grandes --}}
-      {{-- 1) El acordeón ocupa 2/3 en pantallas grandes --}}
-      <div class="lg:col-span-2 space-y-4 ">
+      <div class="lg:col-span-2 space-y-4 w-full">
   {{-- Botón agregar fase --}}
   
 <div class="flex justify-end mb-4 ">
@@ -37,7 +36,7 @@
       <div class="border rounded-md overflow-hidden">
         {{-- Cabecera --}}
         <div class="flex justify-between items-center px-4 py-2 bg-gray-100 dark:bg-gray-800">
-          <button onclick="toggleCollapse('collapse-fase-{{ $fase->id }}')" class="flex-1 text-left dark:text-gray-300 font-semibold">
+          <button onclick="toggleCollapse('collapse-fase-{{ $fase->id }}')" class="flex-1 text-left dark:text-white font-semibold">
             {{ $fase->name }}
           </button>
           <div class="flex items-center space-x-2">
@@ -45,7 +44,7 @@
               {{-- Editar fase --}}
               <a
                 href="{{ route('fases.edit', $fase) . '?' . $queryParams }}"
-                class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-300 rounded"
+                class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white rounded"
                 title="Editar fase"
               >
                 <iconify-icon icon="heroicons:pencil-square" class="text-lg" />
@@ -65,7 +64,7 @@
                 <button
                   type="button"
                   onclick="sweetAlertDelete(event,'deleteFaseForm{{ $fase->id }}')"
-                  class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-gray-300 rounded"
+                  class="p-1 hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white rounded"
                   title="Eliminar fase"
                 >
                   <iconify-icon icon="heroicons:trash" class="text-lg" />
@@ -75,7 +74,7 @@
 
             {{-- Toggle collapse --}}
             <button onclick="toggleCollapse('collapse-fase-{{ $fase->id }}')" class="p-1">
-              <svg class="h-5 w-5 transform transition-transform dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="h-5 w-5 transform transition-transform dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
               </svg>
             </button>
@@ -104,7 +103,7 @@
               @foreach($fase->documents as $doc)
                 <li class="flex justify-between items-center bg-gray-50 dark:bg-slate-800 p-2 rounded">
                   <div class="flex-1">
-                    <span class="font-medium dark:text-gray-300">{{ $doc->name }}</span>
+                    <span class="font-medium dark:text-white">{{ $doc->name }}</span>
 
 
                     @php
@@ -118,7 +117,7 @@
     // 2) Obtenemos el key del status del documento (asumimos que $doc->status->key existe)
     $statusKey = $doc->status->key ?? null;
     // 3) Si no hay key o no está mapeado, usamos gris por defecto
-    $badgeClasses = $statusColors[$statusKey] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
+    $badgeClasses = $statusColors[$statusKey] ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white';
 @endphp
 
 <span class="ml-4 text-sm font-medium px-2 py-0.5 rounded {{ $badgeClasses }}">
@@ -128,7 +127,7 @@
 
 
                   </div>
-                  <div class="flex items-center space-x-2 dark:text-gray-300">
+                  <div class="flex items-center space-x-2 dark:text-white">
                     @can('update', $doc)
                       <a
                         href="{{ route('documents.edit', $doc) . '?' . http_build_query(['fase' => $fase->id, 'qualityControl' => $qualityControl->id]) }}"
@@ -212,24 +211,24 @@
           {{-- Tabs --}}
           <nav class="flex border-b dark:border-slate-700">
             <button data-tab="status"
-                    class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-blue-500 text-blue-600 dark:text-gray-300">
+                    class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-blue-500 text-blue-600 dark:text-white">
               Estado
             </button>
             <button data-tab="comments"
-        class="tab-button whitespace-nowrap px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+        class="tab-button whitespace-nowrap px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-white dark:hover:text-white">
   Comentarios ({{ $comments->count() }})
 </button>
 
             <button data-tab="activity"
-                    class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+                    class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-white dark:hover:text-white">
               Actividad
             </button>
           </nav>
 
           {{-- Panels --}}
-          <div class="p-4 dark:text-gray-300">
+          <div class="p-4 dark:text-white">
             {{-- ESTADO --}}
-            <div id="panel-status" class="space-y-3 dark:text-gray-300">
+            <div id="panel-status" class="space-y-3 dark:text-white">
               @foreach([
                 'open'           => ['label'=>'Abiertas','color'=>'bg-blue-500 text-blue-800 '],
                 'waiting_review' => ['label'=>'En espera de revisión','color'=>'bg-yellow-500 text-yellow-800 '],
@@ -247,7 +246,7 @@
             </div>
 
              {{-- COMENTARIOS --}}
-      <div id="panel-comments" class="hidden text-gray-600 dark:text-gray-300 h-full flex flex-col">
+      <div id="panel-comments" class="hidden text-gray-600 dark:text-white h-full flex flex-col">
         <div class="flex-1 overflow-y-auto space-y-4 pr-2">
           @if($comments->isEmpty())
             <p class="text-sm italic text-center">{{ __('No hay comentarios para esta auditoría.') }}</p>
@@ -269,7 +268,7 @@
                     </span>
                   </div>
                 </div>
-                <p class="mt-1 text-gray-700 dark:text-gray-300 text-sm">
+                <p class="mt-1 text-gray-700 dark:text-white text-sm">
                   {{ $comment->comment }}
                 </p>
 
@@ -292,7 +291,7 @@
                               {{ $reply->created_at }}
                             </span>
                           </div>
-                          <p class="text-gray-700 dark:text-gray-300 text-sm">
+                          <p class="text-gray-700 dark:text-white text-sm">
                             {{ $reply->comment }}
                           </p>
                         </div>
@@ -313,7 +312,7 @@
 
            {{-- ACTIVIDAD --}}
 {{-- ACTIVIDAD --}}
-<div id="panel-activity" class="hidden text-gray-600 dark:text-gray-300">
+<div id="panel-activity" class="hidden text-gray-600 dark:text-white">
   {{-- Definimos un contenedor con altura fija y scroll interno --}}
   <div class="h-64 overflow-y-auto space-y-4">
     @if($histories->isEmpty())
@@ -336,7 +335,7 @@
               </span>
             </div>
           </div>
-          <p class="mt-1 text-gray-700 dark:text-gray-300 text-sm">
+          <p class="mt-1 text-gray-700 dark:text-white text-sm">
             {{ $item->description }}
           </p>
         </div>

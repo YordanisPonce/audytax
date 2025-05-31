@@ -13,7 +13,7 @@
         {{-- Alert end --}}
 
 
-        <div class="card">
+        <div class="card mx-20">
             <header class="card-header noborder">
                 <div class="justify-end flex gap-3 items-center flex-wrap">
                     {{-- Create Button start --}}
