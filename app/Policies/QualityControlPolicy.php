@@ -98,4 +98,9 @@ class QualityControlPolicy
         $autorizeUsers = $qualityControl->users()->get(['users.id'])->pluck('id')->toArray();
         return ($user->isAdmin() ||  in_array($user->id, $autorizeUsers)) ? Response::allow() : Response::deny('You do not own this post.');
     }
+
+     public function createComment(User $user, QualityControl $qualityControl)
+    {
+        return $user->hasRole('admin');
+    }
 }

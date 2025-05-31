@@ -29,12 +29,31 @@ class CommentRequest extends FormRequest
         ];
     }
 
+   
     protected function prepareForValidation()
     {
-        $fase = Fase::find($this->fase_id);
+        // 1) Si el form trae 'fase_id', lo usamos para obtener quality_control_id:
+        if ($this->has('fase_id')) {
+            $fase = Fase::find($this->input('fase_id'));
+            if ($fase) {
+                $this->merge([
+                    'quality_control_id' => $fase->qualityControl->id,
+                ]);
+            }
+        }
+        // 2) Si no hay 'fase_id', pero la ruta trae un QualityControl,
+        //    aprovechamos el route‐model binding para inyectarlo:
+        elseif ($this->route('qualityControl')) {
+            // En rutas como /qualityControls/{qualityControl}/comments
+            $qc = $this->route('qualityControl');
+            $this->merge([
+                'quality_control_id' => $qc->id,
+            ]);
+        }
+
+        // 3) Siempre dejamos comment_id (si viene un “reply” anidado):
         $this->merge([
-            'quality_control_id' => $fase->qualityControl->id,
-            'comment_id' => $this->comment_id ?: null
+            'comment_id' => $this->comment_id ?: null,
         ]);
     }
 }

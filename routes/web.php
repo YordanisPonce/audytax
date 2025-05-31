@@ -70,9 +70,16 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
 
     // qualityControl
     Route::resource('qualityControls', QualityControlController::class);
+
+    Route::post(
+        'qualityControls/{qualityControl}/comments',
+        [QualityControlController::class, 'storeComment']
+    )->name('qualityControls.comments.store');
     Route::controller(QualityControlController::class)->prefix('documents')->as('qualityControls.')->group(function () {
         Route::get('qualityControls/{qualityControl}', 'getDetails')->name('details');
     });
+   
+
     // Permission
     Route::resource('permissions', PermissionController::class)->except(['show']);
     // Roles

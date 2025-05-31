@@ -276,83 +276,220 @@
             {{-- Panels --}}
             <div class="p-4 dark:text-white overflow-y-auto flex-1">
                 {{-- ESTADO --}}
-                <div id="panel-status" class="space-y-3 dark:text-white">
-                    @foreach([
-                        'open'           => ['label'=>'Abiertas','color'=>'bg-blue-500 text-blue-800'],
-                        'waiting_review' => ['label'=>'En espera de revisión','color'=>'bg-yellow-500 text-yellow-800'],
-                        'accepted'       => ['label'=>'Aceptadas','color'=>'bg-green-500 text-green-800'],
-                        'rejected'       => ['label'=>'Rechazadas','color'=>'bg-red-500 text-red-800'],
-                    ] as $key => $meta)
-                        <div class="flex items-center justify-between">
-                            <span class="flex items-center space-x-2">
-                                <span class="w-3 h-3 rounded-full {{ $meta['color'] }}"></span>
-                                <span>{{ $meta['label'] }}</span>
-                            </span>
-                            <span class="font-semibold">{{ $statusCounts[$key] ?? 0 }}</span>
-                        </div>
-                    @endforeach
-                </div>
+<div id="panel-status" class="dark:text-white space-y-3">
+
+    {{-- ------------------------------------------------------
+         1) Barrita de progreso con los cuatro colores, en orden:
+            - Verde (“accepted”)
+            - Rojo (“rejected”)
+            - Amarillo (“waiting_review”)
+            - Azul (“open”)
+         Cada segmento tendrá ancho proporcional al porcentaje
+         que ocupa ese estado sobre el total de documentos.
+       ------------------------------------------------------ --}}
+    @php
+        // 1) Conteos individuales:
+        $acceptedCount = $statusCounts['accepted'] ?? 0;
+        $rejectedCount = $statusCounts['rejected'] ?? 0;
+        $waitingCount  = $statusCounts['waiting_review'] ?? 0;
+        $openCount     = $statusCounts['open'] ?? 0;
+
+        // 2) Usamos EXACTAMENTE el total que vino del controlador:
+        //    (Si por alguna razón no existe o es 0, forzamos a 1 para no dividir por cero)
+        $total = isset($totalDocuments) && $totalDocuments > 0
+                 ? $totalDocuments
+                 : 1;
+
+        // 3) Porcentajes “raw” (sin redondear) para los tres primeros:
+        $rawAcc  = ($acceptedCount  * 100) / $total;
+        $rawRej  = ($rejectedCount  * 100) / $total;
+        $rawWait = ($waitingCount   * 100) / $total;
+        // El porcentaje “Open” lo calculamos al final como “100 − (suma de los tres anteriores)”.
+
+        // 4) Redondeamos a 1 decimal los tres primeros:
+        $pctAccepted = round($rawAcc, 1);
+        $pctRejected = round($rawRej, 1);
+        $pctWaiting  = round($rawWait, 1);
+
+        // 5) El porcentaje “Open” es el resto hasta 100 (evitando quedarnos fuera de rango):
+        $pctOpen = 100.0 - ($pctAccepted + $pctRejected + $pctWaiting);
+
+        // 6) Si por redondeo queda negativo o mayor que 100, lo corregimos:
+        if ($pctOpen < 0) {
+            $pctOpen = 0.0;
+        } elseif ($pctOpen > 100) {
+            $pctOpen = 100.0;
+        }
+    @endphp
+
+    {{-- La barra propiamente dicha --}}
+    {{-- <div class="h-2 w-full bg-gray-200 dark:bg-slate-700 rounded overflow-hidden">
+       
+        <div
+            class="h-full bg-green-500 inline-block"
+            style="width: {{ $pctAccepted }}%;"
+        ></div>
+
+       
+        <div
+            class="h-full bg-red-500 inline-block"
+            style="width: {{ $pctRejected }}%;"
+        ></div>
+
+       
+        <div
+            class="h-full bg-yellow-500 inline-block"
+            style="width: {{ $pctWaiting }}%;"
+        ></div>
+
+       
+        <div
+            class="h-full bg-blue-500 inline-block"
+            style="width: {{ $pctOpen }}%;"
+        ></div>
+    </div> --}}
+
+    {{-- Leyenda de porcentajes debajo --}}
+    <div class="flex text-xs text-gray-600 dark:text-gray-300 mt-1 space-x-4">
+        <span class="flex items-center space-x-1">
+            <span class="block w-3 h-3 bg-green-500 rounded-full"></span>
+            <span>Aceptadas: {{ $pctAccepted }}%</span>
+        </span>
+        <span class="flex items-center space-x-1">
+            <span class="block w-3 h-3 bg-red-500 rounded-full"></span>
+            <span>Rechazadas: {{ $pctRejected }}%</span>
+        </span>
+        <span class="flex items-center space-x-1">
+            <span class="block w-3 h-3 bg-yellow-500 rounded-full"></span>
+            <span>En revisión: {{ $pctWaiting }}%</span>
+        </span>
+        <span class="flex items-center space-x-1">
+            <span class="block w-3 h-3 bg-blue-500 rounded-full"></span>
+            <span>Abiertas: {{ $pctOpen }}%</span>
+        </span>
+    </div>
+
+    {{-- ------------------------------------------------------
+         2) Ahora la lista normal de estados y conteos:
+       ------------------------------------------------------ --}}
+    @foreach([
+        'open'           => ['label'=>'Abiertas','color'=>'bg-blue-500 text-blue-800'],
+        'waiting_review' => ['label'=>'En espera de revisión','color'=>'bg-yellow-500 text-yellow-800'],
+        'accepted'       => ['label'=>'Aceptadas','color'=>'bg-green-500 text-green-800'],
+        'rejected'       => ['label'=>'Rechazadas','color'=>'bg-red-500 text-red-800'],
+    ] as $key => $meta)
+        <div class="flex items-center justify-between">
+            <span class="flex items-center space-x-2">
+                <span class="w-3 h-3 rounded-full {{ $meta['color'] }}"></span>
+                <span>{{ $meta['label'] }}</span>
+            </span>
+            <span class="font-semibold">{{ $statusCounts[$key] ?? 0 }}</span>
+        </div>
+    @endforeach
+
+</div>
+
 
                 {{-- COMENTARIOS --}}
-                <div id="panel-comments" class="hidden text-gray-600 dark:text-white h-full flex flex-col">
-                    <div class="flex-1 overflow-y-auto space-y-4 pr-2">
-                        @if($comments->isEmpty())
-                            <p class="text-sm italic text-center">
-                                {{ __('No hay comentarios para esta auditoría.') }}
-                            </p>
-                        @else
-                            @foreach($comments as $comment)
-                                <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
-                                    <div class="flex items-center space-x-2">
-                                        <img
-                                            src="{{ $comment->user->avatar ?: Avatar::create($comment->user->name)->setDimension(400)->setFontSize(240)->toBase64() }}"
-                                            class="h-8 w-8 rounded-full object-cover"
-                                            alt="Avatar de {{ $comment->user->name }}"
-                                        >
-                                        <div class="flex flex-col">
-                                            <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">
-                                                {{ $comment->user->name }}
+                {{-- COMENTARIOS --}}
+<div id="panel-comments" class="hidden text-gray-600 dark:text-white h-full flex flex-col">
+
+    
+    
+    {{-- 2) Lista de comentarios existentes --}}
+    <div class="flex-1 overflow-y-auto space-y-4 pr-2">
+        @if($comments->isEmpty())
+            <p class="text-sm italic text-center">
+                {{ __('No hay comentarios para esta auditoría.') }}
+            </p>
+            @else
+            @foreach($comments as $comment)
+            <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
+                    <div class="flex items-center space-x-2">
+                        <img
+                            src="{{ $comment->user->avatar
+                                     ?: Avatar::create($comment->user->name)
+                                     ->setDimension(400)
+                                        ->setFontSize(240)
+                                        ->toBase64() }}"
+                            class="h-8 w-8 rounded-full object-cover"
+                            alt="Avatar de {{ $comment->user->name }}"
+                        >
+                        <div class="flex flex-col">
+                            <span class="font-medium text-gray-800 dark:text-gray-200 text-sm">
+                                {{ $comment->user->name }}
+                            </span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">
+                                {{ $comment->created_at }}
+                            </span>
+                        </div>
+                    </div>
+                    <p class="mt-1 text-gray-700 dark:text-white text-sm">
+                        {{ $comment->comment }}
+                    </p>
+
+                    @if($comment->comments->isNotEmpty())
+                        <div class="mt-2 pl-8 space-y-2">
+                            @foreach($comment->comments as $reply)
+                                <div class="flex items-start space-x-2">
+                                    <img
+                                        src="{{ $reply->user->avatar
+                                                 ?: Avatar::create($reply->user->name)
+                                                    ->setDimension(400)
+                                                    ->setFontSize(240)
+                                                    ->toBase64() }}"
+                                        class="h-6 w-6 rounded-full object-cover mt-1"
+                                        alt="Avatar de {{ $reply->user->name }}"
+                                    >
+                                    <div>
+                                        <div class="flex items-center space-x-1">
+                                            <span class="font-medium text-gray-700 dark:text-gray-200 text-sm">
+                                                {{ $reply->user->name }}
                                             </span>
                                             <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                {{ $comment->created_at }}
+                                                {{ $reply->created_at }}
                                             </span>
                                         </div>
+                                        <p class="text-gray-700 dark:text-white text-sm">
+                                            {{ $reply->comment }}
+                                        </p>
                                     </div>
-                                    <p class="mt-1 text-gray-700 dark:text-white text-sm">
-                                        {{ $comment->comment }}
-                                    </p>
-
-                                    @if($comment->comments->isNotEmpty())
-                                        <div class="mt-2 pl-8 space-y-2">
-                                            @foreach($comment->comments as $reply)
-                                                <div class="flex items-start space-x-2">
-                                                    <img
-                                                        src="{{ $reply->user->avatar ?: Avatar::create($reply->user->name)->setDimension(400)->setFontSize(240)->toBase64() }}"
-                                                        class="h-6 w-6 rounded-full object-cover mt-1"
-                                                        alt="Avatar de {{ $reply->user->name }}"
-                                                    >
-                                                    <div>
-                                                        <div class="flex items-center space-x-1">
-                                                            <span class="font-medium text-gray-700 dark:text-gray-200 text-sm">
-                                                                {{ $reply->user->name }}
-                                                            </span>
-                                                            <span class="text-xs text-gray-500 dark:text-gray-400">
-                                                                {{ $reply->created_at }}
-                                                            </span>
-                                                        </div>
-                                                        <p class="text-gray-700 dark:text-white text-sm">
-                                                            {{ $reply->comment }}
-                                                        </p>
-                                                    </div>
-                                                </div>
-                                            @endforeach
-                                        </div>
-                                    @endif
                                 </div>
                             @endforeach
-                        @endif
-                    </div>
+                        </div>
+                    @endif
                 </div>
+            @endforeach
+        @endif
+    </div>
+
+    {{-- 1) Formulario de nuevo comentario (solo si @can('createComment', $qualityControl)) --}}
+    {{-- Formulario para que el Admin (o quien esté autorizado) deje un comentario en este QC --}}
+    @can('createComment', $qualityControl)
+    <form
+        action="{{ route('qualityControls.comments.store', $qualityControl->id) }}"
+        method="POST"
+        class="mb-4"
+    >
+        @csrf
+        <textarea
+            name="comment"
+            rows="3"
+            class="w-full border rounded px-2 py-1 dark:bg-slate-700"
+            placeholder="Escribe aquí tu comentario..."
+            required
+        ></textarea>
+        <x-input-error :messages="$errors->get('comment')" class="mt-1 text-sm text-red-600" />
+    
+        <button
+            type="submit"
+            class="mt-2 inline-flex items-center px-4 py-2 bg-blue-600  text-white rounded hover:bg-blue-700"
+        >
+            Enviar comentario
+        </button>
+    </form>
+    @endcan
+</div>
 
                 {{-- ACTIVIDAD --}}
                 <div id="panel-activity" class="hidden text-gray-600 dark:text-white h-full flex flex-col">

@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CommentRequest;
 use App\Http\Requests\QualityControlRequest;
 use App\Models\AuditoryType;
+use App\Models\Comment;
 use App\Models\QualityControl;
 use App\Models\Status;
 use App\Models\User;
@@ -167,63 +169,72 @@ class QualityControlController extends Controller
             ],
         ];
 
-        // 1) Obtener todas las entradas de historial de este QC, ordenadas de más reciente a más antiguo
-    $histories = $qualityControl
-                    ->histories()           // relación hasMany(History)
-                    ->with('user')          // para que en la vista puedas acceder a $item->user
-                    ->orderBy('created_at', 'desc')
-                    ->get();
+                        // 1) Obtener todas las entradas de historial de este QC, ordenadas de más reciente a más antiguo
+                    $histories = $qualityControl
+                                    ->histories()           // relación hasMany(History)
+                                    ->with('user')          // para que en la vista puedas acceder a $item->user
+                                    ->orderBy('created_at', 'desc')
+                                    ->get();
 
-     // 2) Comentarios (Comments)
-    //    Cargamos eager 'user' y, si tienen respuestas anidadas, también las cargamos
-    $comments = $qualityControl
-                    ->comments()                      // relación hasMany(Comment)
-                    ->with(['user', 'comments.user']) // trae al autor y al autor de cada respuesta, si hay replies
-                    ->orderBy('created_at','desc')    // últimos primero
-                    ->get();
+                    // 2) Comentarios (Comments)
+                    //    Cargamos eager 'user' y, si tienen respuestas anidadas, también las cargamos
+                    $comments = $qualityControl
+                                    ->comments()                      // relación hasMany(Comment)
+                                    ->with(['user', 'comments.user']) // trae al autor y al autor de cada respuesta, si hay replies
+                                    ->orderBy('created_at','desc')    // últimos primero
+                                    ->get();
 
-        $q = $request->get('q');
-        $perPage = $request->get('per_page', 10);
-        $sort = $request->get('sort');
-        $fases = QueryBuilder::for(Fase::class)
-        ->where('quality_control_id', $qualityControl->id)
-        ->with('documents.status')
-        ->latest()
-        ->get();
+                        $q = $request->get('q');
+                        $perPage = $request->get('per_page', 10);
+                        $sort = $request->get('sort');
+                        $fases = QueryBuilder::for(Fase::class)
+                        ->where('quality_control_id', $qualityControl->id)
+                        ->with('documents.status')
+                        ->latest()
+                        ->get();
 
-     
-    // Calculamos el total de documentos por estado en todas las fases:
-    $statusCounts = \App\Models\Document::query()
-        ->whereIn('fase_id', $fases->pluck('id'))
-        ->selectRaw('status_id, count(*) as count')
-        ->groupBy('status_id')
-        ->pluck('count', 'status_id');
+                    // 2) Calcula cuántos documentos hay en cada estado:
+                    $statusCountsRaw = \App\Models\Document::query()
+                        ->whereIn('fase_id', $fases->pluck('id'))
+                        ->selectRaw('status_id, count(*) as count')
+                        ->groupBy('status_id')
+                        ->pluck('count', 'status_id');
 
-    // Mapear IDs de status a tu enum
-    $statusKeys = \App\Models\Status::pluck('key', 'id'); // [1=>'open',2=>'accepted',...]
-    $counts = [
-        'open'           => 0,
-        'waiting_review' => 0,
-        'accepted'       => 0,
-        'rejected'       => 0,
-    ];
-    foreach ($statusCounts as $statusId => $cnt) {
-        $key = $statusKeys[$statusId] ?? null;
-        if ($key && isset($counts[$key])) {
-            $counts[$key] = $cnt;
-        }
-    }
+                    // 3) Mapea esos status_id a sus keys (open, accepted, waiting_review, rejected):
+                    $statusKeys = \App\Models\Status::pluck('key', 'id'); // ej. [ 1=>'open', 2=>'accepted', … ]
 
-    return view('qualityControls.show', [
-        'fases'         => $fases,
-        'qualityControl'=> $qualityControl,
-        'histories'      => $histories,
-        'breadcrumbItems'=> $breadcrumbsItems,
-         'comments'       => $comments,
-        'pageTitle'     => 'Fases de la Auditoria',
-        'statusCounts'  => $counts,
-        // si necesitas comments/activity, pásalos también…
-    ]);
+                    $counts = [
+                        'open'           => 0,
+                        'waiting_review' => 0,
+                        'accepted'       => 0,
+                        'rejected'       => 0,
+                    ];
+                    foreach ($statusCountsRaw as $statusId => $cnt) {
+                        $key = $statusKeys[$statusId] ?? null;
+                        if ($key && isset($counts[$key])) {
+                            $counts[$key] = $cnt;
+                        }
+                    }
+
+                    // 4) Ahora sumamos todos los documentos para obtener el “total real”:
+                    $totalDocuments = array_sum($counts);
+                    // Si no hay documentos, forzamos a 1 para no dividir entre cero:
+                    if ($totalDocuments === 0) {
+                        $totalDocuments = 1;
+                    }
+
+
+                    return view('qualityControls.show', [
+                        'fases'         => $fases,
+                        'qualityControl'=> $qualityControl,
+                        'histories'      => $histories,
+                        'breadcrumbItems'=> $breadcrumbsItems,
+                        'comments'       => $comments,
+                        'pageTitle'     => 'Fases de la Auditoria',
+                        'statusCounts'   => $counts,
+                    'totalDocuments' => $totalDocuments,
+                        // si necesitas comments/activity, pásalos también…
+                    ]);
     }
 
     /**
@@ -335,5 +346,26 @@ class QualityControlController extends Controller
             'fase' => $fase,
             'nextFase' => $nextFase
         ]);
+    }
+
+     /**
+     * Guarda un comentario nuevo para este QualityControl.
+     */
+    public function storeComment(CommentRequest $request, QualityControl $qualityControl)
+    {
+        // 1) Authorization (por ejemplo, solo admin):
+        $this->authorize('createComment', $qualityControl);
+
+        // 2) Crea y guarda el comentario:
+        $comment = new Comment();
+        $comment->comment            = $request->input('comment');
+        $comment->user_id            = auth()->id();
+        $comment->quality_control_id = $qualityControl->id;
+        $comment->save();
+
+        // 3) Redirige de vuelta al show del QualityControl
+        return redirect()
+            ->route('qualityControls.show', ['qualityControl' => $qualityControl->id])
+            ->with('message', 'Comentario agregado correctamente.');
     }
 }
