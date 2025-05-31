@@ -13,24 +13,26 @@
 </head>
 
 <body class="font-inter dashcode-app" id="body_class">
-    <div class="app-wrapper">
+    <div class="app-wrapper ">
 
-        <!-- BEGIN: Sidebar Navigation -->
-        <x-sidebar-menu :links="$links" />
-        <!-- End: Sidebar -->
+        <!-- Sidebar solo visible en pantallas pequeñas -->
+<div class="block xl:hidden">
+    <x-sidebar-menu :links="$links" />
+</div>
+
 
         <!-- BEGIN: Settings -->
         {{--  <x-dashboard-settings /> --}}
         <!-- End: Settings -->
-
+        
         <div class="flex flex-col justify-between min-h-screen">
             <div>
                 <!-- BEGIN: header -->
-                <x-dashboard-header />
+                {{-- <x-dashboard-header /> --}}
                 <!-- BEGIN: header -->
+                <x-dashboard-header :links="$links" />
 
-                <div class="content-wrapper transition-all duration-150 ltr:ml-0 xl:ltr:ml-[248px] rtl:mr-0 xl:rtl:mr-[248px]"
-                    id="content_wrapper">
+                <div class="content-wrapper transition-all duration-150 ltr:ml-0 rtl:mr-0" id="content_wrapper">
                     <div class="page-content">
                         <div class="transition-all duration-150 container-fluid" id="page_layout">
                             <main id="content_layout">
