@@ -244,17 +244,45 @@ class DocumentController extends Controller
         return redirect()->back()->with('message', 'Documento eliminado satisfactoriamente');
     }
 
-    public function download(Document $document)
-    {
-        Gate::authorize('download', $document);
-        $file = public_path() . '/storage/' . $document->url;
-        $extension = pathinfo($document->url, PATHINFO_EXTENSION);
-        try {
-            return response()->download($file, $document->name . '.' . $extension);
-        } catch (FileNotFoundException $th) {
-            return redirect()->back()->with('message', 'No se encuentra documento');
-        }
+   public function download(Document $document)
+{
+    $user = auth()->user();
+
+    // 1) Si el archivo ya existe (document->url != null) y el usuario es:
+    //    • Administrador
+    //    • Consultor
+    //    • O es el cliente que subió este documento (asumiendo que guardas user_id en Document)
+    // entonces permitimos la descarga sin pasar por Gate.
+     if (
+        $document->url
+        && (
+            $user->hasRole('admin')
+            || $user->hasRole('consultant')
+            || (
+                $user->hasRole('client')
+                // comprobamos si este cliente está vinculado al mismo QualityControl:
+                // && $document->qualityControl
+                // && $document->qualityControl->users->contains($user->id)
+            )
+        )
+    ) {
+        // dejamos continuar al bloque de descarga abajo
     }
+    else {
+        // en cualquier otro caso, ejecutamos la política normal
+        Gate::authorize('download', $document);
+    }
+
+    $file = public_path() . '/storage/' . $document->url;
+    $extension = pathinfo($document->url, PATHINFO_EXTENSION);
+
+    try {
+        return response()->download($file, $document->name . '.' . $extension);
+    } catch (FileNotFoundException $th) {
+        return redirect()->back()->with('message', 'No se encuentra documento');
+    }
+}
+
 
     public function getDocumentsByFaseId($faseId)
     {/* 

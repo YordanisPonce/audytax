@@ -177,4 +177,44 @@ class Fase extends Model
         }
         return StatusEnum::Open->value;
     }
+
+   public function getDerivedStatusLabel(): string
+{
+    $total = $this->documents()->count();
+    if ($total === 0) {
+        return '0 % – Abierta';
+    }
+
+    // Conteos:
+    $acceptedCount = $this->documents()
+        ->whereHas('status', fn($q) => $q->where('key', StatusEnum::Accepted->value))
+        ->count();
+    $waitingCount = $this->documents()
+        ->whereHas('status', fn($q) => $q->where('key', StatusEnum::WaitingReview->value))
+        ->count();
+    $rejectedCount = $this->documents()
+        ->whereHas('status', fn($q) => $q->where('key', StatusEnum::Rejected->value))
+        ->count();
+
+    $pct = round(($acceptedCount * 100) / $total, 1);
+
+    // 1) Si hay al menos un waiting_review, lo marcamos “En revisión” (con % opcional)
+    if ($waitingCount > 0 && $acceptedCount < $total) {
+        return "{$pct} % – En revisión";
+    }
+
+    // 2) Si aceptados == total → Completada
+    if ($acceptedCount === $total) {
+        return '100 % – Completada';
+    }
+
+    // 3) Si hay al menos un rechazado pero no todos aceptados → “Rechazos parciales”
+    if ($rejectedCount > 0) {
+        return "{$pct} % – Rechazos parciales";
+    }
+
+    // 4) Si llega aquí: no hay waiting_review ni rechazados, y no todos aceptados → Parcialmente completada
+    return "{$pct} % – Parcialmente completada";
+}
+
 }

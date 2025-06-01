@@ -38,15 +38,7 @@ class QualityControl extends Model
         return $this->hasMany(Document::class);
     }
 
-    public function getFinishPercent()
-    {
-        $total = $this->fases()->count();
-        $part = $this->fases()->whereHas('status', function ($query) {
-            $query->where('key', 'accepted');
-        })->count();
-        return number_format(($part * 100) / $total);
-    }
-
+    
     public function histories()
     {
         return $this->hasMany(History::class, 'quality_control_id')->with('user')->orderBy('id', 'desc');
@@ -103,7 +95,7 @@ class QualityControl extends Model
 {
     // 1) La primera fase aún “open” (sin que el cliente suba nada)
     $open = $this->fases()
-        ->whereHas('status', fn($q) => $q->where('key', StatusEnum::Open->value))
+    ->whereHas('status', fn($q) => $q->where('key', StatusEnum::Open->value))
         ->first();
     if ($open) {
         return $open;
@@ -113,11 +105,42 @@ class QualityControl extends Model
     $waitingReview = $this->fases()
         ->whereHas('status', fn($q) => $q->where('key', StatusEnum::WaitingReview->value))
         ->first();
-    if ($waitingReview) {
-        return $waitingReview;
+        if ($waitingReview) {
+            return $waitingReview;
     }
-
+    
     // 3) Si todo lo anterior falla, devuelve la última fase creada
     return $this->fases()->latest()->first();
 }
+
+ public function getFinishPercent(): int
+    {
+        // 1) Cantidad total de documentos en este QC
+        $totalDocs = $this->documents()->count();
+        
+        // Si no hay documentos, devolvemos 0 para evitar división por cero
+        if ($totalDocs === 0) {
+            return 0;
+        }
+
+        // 2) Contamos solo los que tienen status.key == 'accepted'
+        $acceptedDocs = $this->documents()
+                             ->whereHas('status', function($query) {
+                                 $query->where('key', 'accepted');
+                             })
+                             ->count();
+
+        // 3) Calculamos porcentaje y devolvemos redondeado a entero
+        return intval(
+            round($acceptedDocs * 100.0 / $totalDocs)
+        );
+    }
+    // public function getFinishPercent()
+    // {
+    //     $total = $this->fases()->count();
+    //     $part = $this->fases()->whereHas('status', function ($query) {
+    //         $query->where('key', 'accepted');
+    //     })->count();
+    //     return number_format(($part * 100) / $total);
+    // }
 }

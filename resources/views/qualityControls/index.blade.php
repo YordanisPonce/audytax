@@ -1,9 +1,8 @@
 <x-app-layout>
     <div>
-        <div class=" mb-6">
+        <div class="mb-6">
             {{-- Breadcrumb start --}}
             <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="$pageTitle" />
-
         </div>
 
         {{-- Alert start --}}
@@ -12,128 +11,147 @@
         @endif
         {{-- Alert end --}}
 
-
         <div class="card mx-20">
-            <header class=" card-header noborder">
+            <header class="card-header noborder">
                 <div class="justify-end flex gap-3 items-center flex-wrap">
                     {{-- Create Button start --}}
                     @can('qualityControl create')
                         <a class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
-                            href="{{ route('qualityControls.create') }}">
-                            <iconify-icon icon="ic:round-plus" class="text-lg mr-1">
-                            </iconify-icon>
+                           href="{{ route('qualityControls.create') }}">
+                            <iconify-icon icon="ic:round-plus" class="text-lg mr-1"></iconify-icon>
                             {{ __('New') }}
                         </a>
                     @endcan
                     {{-- Refresh Button start --}}
-                    <a class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2.5 cursor-pointer"
-                        onclick="location.reload()">
-                        <iconify-icon icon="mdi:refresh" class="text-xl "></iconify-icon>
-                    </a>
+                    {{-- <a class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2.5 cursor-pointer"
+                       onclick="location.reload()">
+                        <iconify-icon icon="mdi:refresh" class="text-xl"></iconify-icon>
+                    </a> --}}
                 </div>
                 <div class="justify-center flex flex-wrap sm:flex items-center lg:justify-end gap-3">
                     <div class="relative w-full sm:w-auto flex items-center">
                         <form id="searchForm" method="get" action="{{ route('users.index') }}">
                             <input name="q" type="text"
-                                class="inputField pl-8 p-2 border border-slate-200 dark:border-slate-700 rounded-md dark:bg-slate-900"
-                                placeholder="Search" value="{{ request()->q }}">
+                                   class="inputField pl-8 p-2 border border-slate-200 dark:border-slate-700 rounded-md dark:bg-slate-900"
+                                   placeholder="Search" value="{{ request()->q }}">
                         </form>
                         <iconify-icon class="absolute text-textColor left-2 dark:text-white"
-                            icon="quill:search-alt"></iconify-icon>
+                                      icon="quill:search-alt"></iconify-icon>
                     </div>
                 </div>
             </header>
             <div class="card-body px-6 pb-6">
                 <div class="overflow-x-auto -mx-6">
                     <div class="inline-block min-w-full align-middle">
-                        <div class="overflow-hidden ">
+                        <div class="overflow-hidden">
                             <table class="min-w-full divide-y divide-slate-100 table-fixed dark:divide-slate-700">
                                 <thead class="bg-slate-200 dark:bg-slate-700">
                                     <tr>
-                                        <th scope="col" class="table-th ">
-                                            {{ __('Name') }}
-                                        </th>
-                                        <th scope="col" class="table-th ">
-                                            {{ __('Auditory Type') }}
-                                        </th>
-                                        <th scope="col" class="table-th ">
-                                            {{ __('Fases') }}
-                                        </th>
-                                        <th scope="col" class="table-th ">
-                                            {{ __('Clients') }}
-                                        </th>
-                                        <th scope="col" class="table-th ">
-                                            {{ __('Consultors') }}
-                                        </th>
-                                        <th scope="col" class="table-th ">
-                                            {{ __('Status') }}
-                                        </th>
-                                        <th scope="col" class="table-th w-20">
-                                            {{ __('Action') }}
-                                        </th>
+                                        <th scope="col" class="table-th">{{ __('Name') }}</th>
+                                        <th scope="col" class="table-th">{{ __('Auditory Type') }}</th>
+                                        <th scope="col" class="table-th">{{ __('Fases') }}</th>
+                                        <th scope="col" class="table-th">{{ __('Clients') }}</th>
+                                        <th scope="col" class="table-th">{{ __('Consultors') }}</th>
+                                        <th scope="col" class="table-th">{{ __('Status') }}</th>
+                                        <th scope="col" class="table-th w-20">{{ __('Action') }}</th>
                                     </tr>
                                 </thead>
-                                <tbody
-                                    class="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700">
+                                <tbody class="bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700">
                                     @forelse ($qualityControls as $qualityControl)
-                                            @php
-        $statusColors = [
-            'open'           => 'bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-100',
-            'waiting_review' => 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800 dark:text-yellow-100',
-            'accepted'       => 'bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-100',
-            'rejected'       => 'bg-red-100 text-red-800 dark:bg-red-800 dark:text-red-100',
-        ];
-        $key = $qualityControl->status->key ?? null;
-        $badgeClasses = $statusColors[$key]
-                         ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300';
-    @endphp
-                                        <tr>
+                                        @php
+                                            // Extracción de conteos que se hicieron en el controlador:
+                                            $accepted = $qualityControl->accepted_count;
+                                            $total    = $qualityControl->total_documents_count;
+                                            // Cálculo de porcentaje (si total=0 => 0%)
+                                            $pct = $total > 0 ? round($accepted * 100 / $total, 1) : 0;
+                                            $isFullyAccepted = ($total > 0 && $accepted === $total);
+                                        @endphp
+                                        <tr @class([
+                                                'row-fully-accepted' => $isFullyAccepted,
+                                                'bg-white divide-y divide-slate-100 dark:bg-slate-800 dark:divide-slate-700' => true
+                                            ])> 
                                             <td class="table-td">
-                                                <a href="{{ route('qualityControls.show', $qualityControl) }}">{{ $qualityControl->name }}</a>
-
+                                                <a href="{{ route('qualityControls.show', $qualityControl) }}">
+                                                    {{ $qualityControl->name }}
+                                                </a>
                                             </td>
                                             <td class="table-td">
                                                 {{ $qualityControl->auditoryType->name }}
                                             </td>
+                                            <td class="table-td">{{ $qualityControl->fases_count }}</td>
+                                            <td class="table-td">{{ $qualityControl->client_users_count }}</td>
+                                            <td class="table-td">{{ $qualityControl->consultant_users_count }}</td>
+
+                                            {{-- ─────────────────────────── Columna “Status” ─────────────────────────── --}}
                                             <td class="table-td">
-                                                {{ $qualityControl->fases_count }}
+                                                <div class="flex items-center space-x-2">
+                                                    {{-- 1) SVG Circular Progress (40×40px) --}}
+                                                    <div class="inline-block" style="width: 55px; height: 55px;">
+                                                        <svg viewBox="0 0 36 36" class="w-full h-full">
+                                                            {{-- Fondo gris --}}
+                                                            <path
+                                                                class="text-gray-200 dark:text-slate-700"
+                                                                d="M18 2.0845
+                                                                   a 15.9155 15.9155 0 0 1 0 31.831
+                                                                   a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                stroke-width="5"
+                                                            />
+                                                            {{-- Arco verde: porcentaje de accepted --}}
+                                                            <path
+                                                                class="text-green-500"
+                                                                stroke-dasharray="{{ $pct }}, 300"
+                                                                d="M18 2.0845
+                                                                   a 15.9155 15.9155 0 0 1 0 31.831
+                                                                   a 15.9155 15.9155 0 0 1 0 -31.831"
+                                                                fill="none"
+                                                                stroke="currentColor"
+                                                                stroke-width="5"
+                                                                stroke-linecap="round"
+                                                            />
+                                                            {{-- Texto en el centro --}}
+                                                            <text
+                                                                x="18"
+                                                                y="22.4"
+                                                                class="text-xs font-medium text-gray-800 dark:text-gray-300"
+                                                                text-anchor="middle"
+                                                            >
+                                                                {{ intval($pct) }}%
+                                                            </text>
+                                                        </svg>
+                                                    </div>
+                                                    {{-- 2) Mostrar “accepted/total” al lado (opcional) --}}
+                                                    <span class="text-sm text-gray-700 dark:text-gray-300">
+                                                        {{ $accepted }} / {{ $total }}
+                                                    </span>
+                                                </div>
                                             </td>
-                                            <td class="table-td">
-                                                {{ $qualityControl->client_users_count }}
-                                            </td>
-                                            <td class="table-td">
-                                                {{ $qualityControl->consultant_users_count }}
-                                            </td>
-                                             {{-- Aquí mostramos el badge --}}
-                                            <td class="table-td">
-                                            <span class="inline-flex items-center px-2 py-1 text-sm font-medium rounded {{ $badgeClasses }}">
-                                              {{ $qualityControl->status->label }}
-                                            </span>
-                                             </td>
+
                                             <td class="table-td">
                                                 <div class="flex space-x-3 rtl:space-x-reverse">
-                                                    {{-- view --}}
+                                                    {{-- View --}}
                                                     @can('qualityControl show')
-                                                        <a class="action-btn" href="{{ route('qualityControls.show', $qualityControl) }}">
+                                                        <a class="action-btn"
+                                                           href="{{ route('qualityControls.show', $qualityControl) }}">
                                                             <iconify-icon icon="heroicons:eye"></iconify-icon>
                                                         </a>
                                                     @endcan
                                                     {{-- Edit --}}
                                                     @can('qualityControl update')
                                                         <a class="action-btn"
-                                                            href="{{ route('qualityControls.edit', ['qualityControl' => $qualityControl]) }}">
+                                                           href="{{ route('qualityControls.edit', $qualityControl) }}">
                                                             <iconify-icon icon="heroicons:pencil-square"></iconify-icon>
                                                         </a>
                                                     @endcan
-                                                    {{-- delete --}}
+                                                    {{-- Delete --}}
                                                     @can('qualityControl delete')
                                                         <form id="deleteForm{{ $qualityControl->id }}" method="POST"
-                                                            action="{{ route('qualityControls.destroy', $qualityControl) }}">
+                                                              action="{{ route('qualityControls.destroy', $qualityControl) }}">
                                                             @csrf
                                                             @method('DELETE')
                                                             <a class="action-btn cursor-pointer"
-                                                                onclick="sweetAlertDelete(event, 'deleteForm{{ $qualityControl->id }}')"
-                                                                type="submit">
+                                                               onclick="sweetAlertDelete(event, 'deleteForm{{ $qualityControl->id }}')">
                                                                 <iconify-icon icon="heroicons:trash"></iconify-icon>
                                                             </a>
                                                         </form>
@@ -144,24 +162,27 @@
                                     @empty
                                         <tr class="border border-slate-100 dark:border-slate-900 relative">
                                             <td class="table-cell text-center" colspan="7">
-                                                <img src="{{ asset('images/result-not-found.svg') }}" 
-                                                    class="w-64 m-auto" />
+                                                <img src="{{ asset('images/result-not-found.svg') }}"
+                                                     class="w-64 m-auto" />
                                                 <h2 class="text-xl text-slate-700 mb-8 -mt-4">
-                                                    {{ __('No results found.') }}</h2>
+                                                    {{ __('No results found.') }}
+                                                </h2>
                                             </td>
                                         </tr>
                                     @endforelse
                                 </tbody>
                             </table>
-                            <x-table-footer :per-page-route-name="'qualityControls.index'" :data="$qualityControls" />
+                            {{-- Paginación --}}
+                            <x-table-footer :per-page-route-name="'qualityControls.index'"
+                                            :data="$qualityControls" />
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
     </div>
 
+    {{-- Script SweetAlert2 para confirmación de borrado --}}
     @push('scripts')
         <script>
             function sweetAlertDelete(event, formId) {
@@ -177,7 +198,7 @@
                     if (result.isConfirmed) {
                         form.submit();
                     }
-                })
+                });
             }
         </script>
     @endpush

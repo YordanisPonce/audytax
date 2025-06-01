@@ -59,6 +59,16 @@ class QualityControlController extends Controller
                     $query->whereHas('roles', function ($subquery) {
                         $subquery->where('name', 'consultant');
                     });
+                },// ————————————————————————————
+                // Nuevo: conteo TOTAL de documentos
+                'documents as total_documents_count',
+
+                // Nuevo: conteo solo de documentos cuyo estado sea 'accepted'
+                'documents as accepted_count' => function ($query) {
+                    // Hacemos join a status para filtrar por clave “accepted”
+                    $query->whereHas('status', function ($q2) {
+                        $q2->where('key', 'accepted');
+                    });
                 },
             ])
             ->where(function ($query) use ($user) {

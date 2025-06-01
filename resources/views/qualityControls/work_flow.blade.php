@@ -75,6 +75,11 @@
 
 
 
+
+
+                    
+
+
                     {{--  --}}
                     <div class="card w-full">
                         <div class="card-body flex flex-col p-6">
@@ -86,7 +91,9 @@
                             </header>
                             <div class="card-text h-full">
                                 <div>
-                                    <ul class="nav nav-tabs flex flex-col md:flex-row flex-wrap list-none border-b-0 pl-0 mb-4"
+
+                                    
+                                    <ul class="nav nav-tabs flex flex-wrap list-none border-b-0 pl-0 mb-4"
                                         id="tabs-tab" role="tablist">
                                         <li class="nav-item" role="presentation">
                                             <a href="#tabs-home-withIcon" @class([
@@ -216,7 +223,7 @@
                                         </div>
                                         <div class="tab-pane fade" id="tabs-messages-withIcon" role="tabpanel"
                                             aria-labelledby="tabs-messages-withIcon-tab">
-                                            <div class=" text-slate-800 block w-full px-4 py-2 text-sm relative">
+                                            <div class="max-h-[400px] overflow-y-auto text-slate-800 block w-full px-4 py-2 text-sm relative">
                                                 @foreach ($qualityControl->histories as $item)
                                                     <div
                                                         class="flex ltr:text-left rtl:text-right mb-2  border-b-[.5px] border-opacity-75 pb-2">
@@ -251,6 +258,17 @@
 
 
 
+
+
+
+
+
+
+
+
+
+
+{{-- Componente derecho  --}}
                     <div class="card min-w-[400px] h-fit max-w-[400px] order-second">
                         <div class="card-header">
                             <h4 class="card-title">{{ $fase->name }}</h4>
@@ -266,8 +284,9 @@
                             </div>
                             <div>
                                 <div class="flex justify-between text-sm font-normal dark:text-slate-300 mb-3 mt-4">
-                                    <span>{{ $fase->status->label }}</span>
-                                    <span class="font-normal">{{ $fase->getFinishPercent() }}%</span>
+                                    <span>{{ $fase->getDerivedStatusLabel() }}</span>
+
+                                    {{-- <span class="font-normal">{{ $fase->getFinishPercent() }}%</span> --}}
                                 </div>
                                 <div class="w-full bg-slate-200 h-2 rounded-xl overflow-hidden">
                                     <div class="progress-bar bg-info-500 h-full rounded-xl" style="width:0%;"></div>
@@ -296,6 +315,12 @@
                             </div>
                         </div>
                     </div>
+
+
+
+
+
+
                     </ul>
                 </div>
             @endisset

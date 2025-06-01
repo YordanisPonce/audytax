@@ -1,143 +1,176 @@
+{{-- resources/views/components/file-picker.blade.php --}}
 @props(['document', 'fileId', 'fileName'])
 
-<div class="flex w-full mt-4 items-center justify-between gap-2 border-b pb-2 md:pb-4 file-picker-container gap-2">
-    <p class="break-all flex gap-2 max-md:flex-wrap grow truncate">
-        <span class="truncate">
-            {{ $document->name ?? 'No definido' }}&nbsp;@isset($document->original_name)
-                ({{ $document->original_name }})
+<div class="flex w-full mt-4 items-center justify-between gap-2 border-b pb-2 md:pb-4 file-picker-container">
+    {{-- 1) Icono + Nombre del documento (y original_name si existe) --}}
+    <div class="flex-1 flex items-center space-x-2 overflow-hidden">
+        <iconify-icon icon="heroicons-outline:document-text" class="text-lg text-slate-600 dark:text-slate-300"></iconify-icon>
+        <div class="truncate">
+            <span class="font-medium text-slate-800 dark:text-slate-200 truncate">
+                {{ $document->name ?? 'No definido' }}
+            </span>
+            @isset($document->original_name)
+                <small class="text-sm text-slate-500 dark:text-slate-400 truncate">
+                    ({{ $document->original_name }})
+                </small>
             @endisset
-        </span>
-        <small class="grow truncate">
-            <a class="text-blue-500 hover:underline truncate w-1/2 file-name" target="_blank" href="">
+        </div>
+    </div>
 
-            </a>
-        </small>
-    </p>
-    @if ($document->isOpen()|| $document->isRejected())
-        @hasrole('client')
-            <label for="{{ $fileId }}"
-                class="ml-auto cursor-pointer active:scale-90 transition-all duration-100 input-area">
-                <iconify-icon class="text-2xl flex-0" icon="basil:upload-outline" />
-                <input type="file" accept=".jpg, .png, .xlsx, .xls, .csv, .doc, .docx, .ppt, .pptx, .pdf"
-                    name="{{ $fileName }}" id="{{ $fileId }}" class="hidden" onchange="handleInputChange(event)">
-            </label>
-            <a class="cursor-pointer cancel-button hidden" onclick="handleDeleteFile(event)">
-                <iconify-icon class="text-2xl flex-0" icon="mdi:cancel-circle-outline" />
-            </a>
-        @else
-            <p class="onTop"></p>
-            <iconify-icon icon="ic:sharp-pending-actions"></iconify-icon>
-        @endhasrole
-    @elseif ($document->isWaitingReview())
-        @hasrole('client')
-            <x-processing :className="'h-5 w-5'" :document="$document" />
-        @else
+    {{-- 2) Zona según estado del documento --}}
+    <div class="flex items-center space-x-2">
+        @php $key = $document->status->key; @endphp
 
-            <a class="action-btn text-success-500" href="{{ route('documents.mark-as-accept', ['document' => $document]) }}">
-    <iconify-icon icon="material-symbols:check"></iconify-icon>
-</a>
-<a class="action-btn text-danger-500" href="{{ route('documents.reject', ['document' => $document]) }}">
-    <iconify-icon icon="mdi:cancel-bold"></iconify-icon>
-</a>
+        {{-- — 1) ESTADO “OPEN” (Abierto) — --}}
+        @if($key === 'open')
+            {{-- Badge azul “Abierto” --}}
+            <span class="inline-flex items-center space-x-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 px-2 py-1 rounded-full text-sm font-medium">
+                <iconify-icon icon="heroicons-outline:clock" class="text-base"></iconify-icon>
+                <span>Abierto</span>
+            </span>
 
+            @hasrole('client')
+                {{-- Cliente puede subir un nuevo archivo --}}
+                <label for="{{ $fileId }}"
+                       class="cursor-pointer p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                    <iconify-icon icon="heroicons-outline:cloud-upload" class="text-2xl text-blue-500"></iconify-icon>
+                    <input type="file"
+                           accept=".jpg,.png,.xlsx,.xls,.csv,.doc,.docx,.ppt,.pptx,.pdf"
+                           name="{{ $fileName }}"
+                           id="{{ $fileId }}"
+                           class="hidden"
+                           onchange="handleInputChange(event)">
+                </label>
 
-        @endhasrole
-    @elseif ($document->isAccepted())
-    <span class="badge bg-success-500 text-white capitalize inline-flex items-center">Aceptado</span>
-@elseif ($document->isRejected())
-    <span class="badge bg-danger-500 text-white capitalize inline-flex items-center">Rechazado</span>
-@endif
+                {{-- Cancelar subida --}}
+                <button type="button"
+                        class="cancel-button hidden p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                        onclick="handleDeleteFile(event)">
+                    <iconify-icon icon="heroicons-outline:trash" class="text-2xl text-red-500"></iconify-icon>
+                </button>
+            @endhasrole
 
-    @if (!$document->isOpen())
-        <a class="action-btn" href="{{ route('documents.download', ['document' => $document]) }}">
-            <iconify-icon icon="ic:baseline-download"></iconify-icon>
+        {{-- — 2) ESTADO “WAITING_REVIEW” (En revisión) — --}}
+        @elseif($key === 'waiting_review')
+            @hasrole('client')
+                {{-- Badge amarilla “En revisión” --}}
+                <span class="inline-flex items-center space-x-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100 px-2 py-1 rounded-full text-sm font-medium">
+                    <iconify-icon icon="heroicons-outline:refresh" class="animate-spin text-base"></iconify-icon>
+                    <span>En revisión</span>
+                </span>
+            @else
+                {{-- Admin/Consultor ve botones “Aceptar” y “Rechazar” --}}
+                <a href="{{ route('documents.mark-as-accept', ['document' => $document]) }}"
+                   class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                   title="Aceptar">
+                    <iconify-icon icon="heroicons-solid:check-circle" class="text-2xl text-green-500"></iconify-icon>
+                </a>
+                <a href="{{ route('documents.reject', ['document' => $document]) }}"
+                   class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                   title="Rechazar">
+                    <iconify-icon icon="heroicons-solid:x-circle" class="text-2xl text-red-500"></iconify-icon>
+                </a>
+            @endhasrole
+
+        {{-- — 3) ESTADO “ACCEPTED” (Aceptado) — --}}
+        @elseif($key === 'accepted')
+            <span class="inline-flex items-center space-x-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 px-2 py-1 rounded-full text-sm font-medium">
+                <iconify-icon icon="heroicons-solid:check-circle" class="text-base"></iconify-icon>
+                <span>Aceptado</span>
+            </span>
+
+        {{-- — 4) ESTADO “REJECTED” (Rechazado) — --}}
+        @elseif($key === 'rejected')
+            <span class="inline-flex items-center space-x-1 bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100 px-2 py-1 rounded-full text-sm font-medium">
+                <iconify-icon icon="heroicons-solid:x-circle" class="text-base"></iconify-icon>
+                <span>Rechazado</span>
+            </span>
+
+            @hasrole('client')
+                {{-- Si está rechazado, el cliente puede volver a subir --}}
+                <label for="{{ $fileId }}"
+                       class="cursor-pointer p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition">
+                    <iconify-icon icon="heroicons-outline:cloud-upload" class="text-2xl text-blue-500"></iconify-icon>
+                    <input type="file"
+                           accept=".jpg,.png,.xlsx,.xls,.csv,.doc,.docx,.ppt,.pptx,.pdf"
+                           name="{{ $fileName }}"
+                           id="{{ $fileId }}"
+                           class="hidden"
+                           onchange="handleInputChange(event)">
+                </label>
+
+                {{-- Cancelar subida --}}
+                <button type="button"
+                        class="cancel-button hidden p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+                        onclick="handleDeleteFile(event)">
+                    <iconify-icon icon="heroicons-outline:trash" class="text-2xl text-red-500"></iconify-icon>
+                </button>
+            @endhasrole
+        @endif
+    </div>
+
+    {{-- 3) Descargar (si no está “open”) --}}
+    @if($key !== 'open')
+        <a href="{{ route('documents.download', ['document' => $document]) }}"
+           class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition"
+           title="Descargar">
+            <iconify-icon icon="heroicons-outline:download" class="text-xl text-slate-600 dark:text-slate-300"></iconify-icon>
         </a>
     @endif
 </div>
 
 @push('scripts')
-    <script>
-        function handleInputChange(event) {
-            event = event || window.event;
-            const {
-                target
-            } = event;
-            const a = target.closest('div.file-picker-container').querySelector('.file-name');
-            const label = target.closest('label');
-            label && label.classList.add('hidden')
-            const delButton = label.closest('div').querySelector('.cancel-button')
-            delButton && delButton.classList.remove('hidden')
-            if (a) {
-                a.href = URL.createObjectURL(target.files[0]);
-                a.textContent = `(${target.files[0]?.name})`
-            }
+<script>
+    function handleInputChange(event) {
+        const input = event.target;
+        const container = input.closest('.file-picker-container');
+        const uploadLabel = container.querySelector('label[for="' + input.id + '"]');
+        const cancelBtn = container.querySelector('.cancel-button');
+
+        // Oculta el label de upload y muestra el botón de cancelar
+        if (uploadLabel) uploadLabel.classList.add('hidden');
+        if (cancelBtn) cancelBtn.classList.remove('hidden');
+    }
+
+    function handleDeleteFile(event) {
+        const cancelBtn = event.currentTarget;
+        const container = cancelBtn.closest('.file-picker-container');
+        const oldInput = container.querySelector('input[type="file"]');
+        const uploadLabel = container.querySelector('label[for="' + oldInput.id + '"]');
+
+        // Restaurar el input de file (para que quede vacío)
+        const newInput = document.createElement('input');
+        newInput.type = 'file';
+        newInput.name = oldInput.name;
+        newInput.id   = oldInput.id;
+        newInput.accept = oldInput.accept;
+        newInput.classList.add('hidden');
+        newInput.addEventListener('change', handleInputChange);
+        oldInput.parentNode.replaceChild(newInput, oldInput);
+
+        // Oculta el botón de cancelar, muestra otra vez el label de upload
+        cancelBtn.classList.add('hidden');
+        if (uploadLabel) uploadLabel.classList.remove('hidden');
+    }
+
+    // Opcional: inicializar tooltips con Tippy.js (si lo usas)
+    function initTooltipPicker() {
+        if (window.innerWidth > 768 && typeof tippy !== 'undefined') {
+            tippy(".file-picker-container [title]", {
+                placement: "top",
+                allowHTML: true,
+                maxWidth: 200,
+                appendTo: document.body,
+                popperOptions: {
+                    modifiers: [
+                        { name: 'offset', options: { offset: [0, 10] } },
+                        { name: 'preventOverflow', options: { padding: 10 } },
+                        { name: 'computeStyles', options: { gpuAcceleration: false } },
+                    ],
+                },
+            });
         }
-
-        function handleDeleteFile(event) {
-            let newInputElement = document.createElement('input');
-            const input = event.target.closest('div').querySelector('input');
-
-            newInputElement.type = 'file';
-            newInputElement.name = input?.name; // Establece el nombre del campo en el formulario
-            newInputElement.id = input?.id;
-            newInputElement.classList = 'd-none';
-            newInputElement.addEventListener('change', handleInputChange);
-
-            input.value = "";
-            const parent = event.target.closest('div');
-            const inputArea = event.target.closest('div').querySelector('.input-area')
-            inputArea.classList.remove('hidden')
-            event.currentTarget.classList.add('hidden')
-            input.parentNode.replaceChild(newInputElement, input);
-            const a = event.target.closest('div.file-picker-container').querySelector('.file-name');
-            if (a) {
-                a.href = "";
-                a.textContent = ``
-            }
-        }
-
-
-        function initTooltipPicker() {
-            if (window.innerWidth > 768) {
-                // Tooltip and Popover
-                tippy(".onTop", {
-                    content: "Sin descripci&oacute;n disponible",
-                    placement: "top",
-                    allowHTML: true,
-                    maxWidth: 200,
-                    // Estilos CSS personalizados
-                    appendTo: document.body,
-                    popperOptions: {
-                        modifiers: [{
-                                name: 'offset',
-                                options: {
-                                    offset: [0, 10],
-                                },
-                            },
-                            {
-                                name: 'preventOverflow',
-                                options: {
-                                    padding: 10,
-                                },
-                            },
-                            {
-                                name: 'computeStyles',
-                                options: {
-                                    gpuAcceleration: false,
-                                },
-                            },
-                        ],
-                    },
-                    onCreate(instance) {
-                        // Aplica estilos adicionales al contenido del tooltip
-                        const tooltipContent = instance.popper.querySelector('.tippy-content');
-                        tooltipContent.style.whiteSpace = 'pre-wrap';
-                        tooltipContent.style.wordWrap = 'break-word';
-                    },
-                });
-            }
-        }
-
-        initTooltipPicker();
-    </script>
+    }
+    initTooltipPicker();
+</script>
 @endpush

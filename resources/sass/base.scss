@@ -143,3 +143,11 @@
     transform: rotate(180deg);
 }
 
+.row-fully-accepted {
+  background-color: rgba(220, 252, 231, 0.5); /* verde muy suave */
+}
+body.dark .row-fully-accepted {
+  background-color: rgba(16, 185, 129, 0.25); /* verde oscuro semitransparente en modo oscuro */
+}
+
+
