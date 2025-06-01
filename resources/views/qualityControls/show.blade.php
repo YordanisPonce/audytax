@@ -119,130 +119,169 @@
                         </div>
                     </div>
 
+
+
+
+
                     {{-- Contenido colapsable de la fase (documentos) --}}
                     <div
                         id="collapse-fase-{{ $fase->id }}"
                         class="p-4 bg-white dark:bg-slate-700"
                     >
-                        @if($fase->documents->isEmpty())
-                            <p class="text-sm text-gray-500 dark:text-gray-400">
-                                No hay documentos en esta fase.
-                            </p>
-                        @else
-                            <ul class="space-y-2">
-                                @foreach($fase->documents as $doc)
-                                    {{-- Cada documento con data-name para filtrado --}}
-                                    <li
-                                        class="flex justify-between items-center bg-gray-50 dark:bg-slate-800 p-2 rounded"
-                                        data-name="{{ strtolower($doc->name) }}"
-                                    >
-                                        <div class="flex-1">
-                                            <span class="font-medium dark:text-white">
-                                                {{ $doc->name }}
-                                            </span>
+                       {{-- Dentro de la iteración sobre fases, en cada “collapse-fase-{{ $fase->id }}” --}}
+@if($fase->documents->isEmpty())
+    <p class="text-sm text-gray-500 dark:text-gray-400">
+        No hay documentos en esta fase.
+    </p>
+@else
+    <ul class="space-y-2">
+        @foreach($fase->documents as $doc)
+            {{-- Cada documento con data-name para filtrado --}}
+            <li
+                class="flex justify-between items-center bg-gray-50 dark:bg-slate-800 p-2 rounded"
+                data-name="{{ strtolower($doc->name) }}"
+            >
+                <div class="flex-1 flex items-center space-x-2 overflow-hidden">
+                    {{-- 1) Ícono de documento + Nombre --}}
+                    <iconify-icon icon="heroicons-outline:document-text" class="text-lg text-slate-600 dark:text-slate-300"></iconify-icon>
+                    <div class="truncate">
+                        <span class="font-medium text-slate-800 dark:text-slate-200 truncate">
+                            {{ $doc->name }}
+                        </span>
+                        @isset($doc->original_name)
+                            <small class="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                ({{ $doc->original_name }})
+                            </small>
+                        @endisset
+                    </div>
+                </div>
 
-                                            @php
-                                                // Mapeo de colores según el key del status
-                                                $statusColors = [
-                                                    'open'           => 'bg-blue-100 text-blue-800',
-                                                    'waiting_review' => 'bg-yellow-100 text-yellow-800',
-                                                    'accepted'       => 'bg-green-100 text-green-800',
-                                                    'rejected'       => 'bg-red-100 text-red-800',
-                                                ];
-                                                $statusKey = $doc->status->key ?? null;
-                                                $badgeClasses = $statusColors[$statusKey]
-                                                    ?? 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-white';
-                                            @endphp
+                <div class="flex items-center space-x-3">
+                    @php $key = $doc->status->key; @endphp
 
-                                            <span
-                                                class="ml-4 text-sm font-medium px-2 py-0.5 rounded {{ $badgeClasses }}"
-                                            >
-                                                {{ $doc->status->label ?? 'Sin estado' }}
-                                            </span>
-                                        </div>
-                                        <div class="flex items-center space-x-2 dark:text-white">
-                                            @can('update', $doc)
-                                                <a
-                        href="{{ route('documents.edit', $doc) . '?' . http_build_query(['fase' => $fase->id, 'qualityControl' => $qualityControl->id]) }}"
-                        title="Editar documento"
-                      >
-                                                    <iconify-icon icon="heroicons:pencil-square" />
-                                                </a>
-                                            @endcan
+                    {{-- 2) Badges con íconos según el estado --}}
+                    @if($key === 'open')
+                        {{-- Badge azul “Abierto” --}}
+                        <span class="inline-flex items-center space-x-1 bg-blue-100 dark:bg-blue-800 text-blue-800 dark:text-blue-100 px-2 py-0.5 rounded-full text-xs font-medium">
+                            <iconify-icon icon="heroicons-outline:clock" class="text-sm"></iconify-icon>
+                            <span>Abierto</span>
+                        </span>
 
-                                            @if($doc->url)
-                                                @can('document download')
-                                                    <a
-                                                        href="{{ route('documents.download', $doc) }}"
-                                                        title="Descargar"
-                                                    >
-                                                        <iconify-icon icon="ic:baseline-download" />
-                                                    </a>
-                                                @endcan
-                                            @endif
+                    @elseif($key === 'waiting_review')
+                        {{-- Badge amarilla “En revisión” --}}
+                        <span class="inline-flex items-center space-x-1 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100 px-2 py-0.5 rounded-full text-xs font-medium">
+                            <iconify-icon icon="heroicons-outline:refresh" class="animate-spin text-sm text-yellow-600"></iconify-icon>
+                            <span>En revisión</span>
+                        </span>
 
-                                            @can('waitingReview', $doc)
-                                                <a
-                                                    href="{{ route('documents.waiting-review', ['document' => $doc->id]) . '?' . $queryParams . '&fase=' . $fase->id }}"
-                                                    class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded text-xs"
-                                                >
-                                                    Esperando revisión
-                                                </a>
-                                            @endcan
+                    @elseif($key === 'accepted')
+                        {{-- Badge verde “Aceptado” --}}
+                        <span class="inline-flex items-center space-x-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 px-2 py-0.5 rounded-full text-xs font-medium">
+                            <iconify-icon icon="heroicons-solid:check-circle" class="text-sm"></iconify-icon>
+                            <span>Aceptado</span>
+                        </span>
 
-                                            @can('markAsAccepted', $doc)
-                                                <a
-                                                    href="{{ route('documents.mark-as-accept', $doc) . '?' . $queryParams . '&fase=' . $fase->id }}"
-                                                    class="px-2 py-1 bg-green-100 text-green-800 rounded text-xs"
-                                                >
-                                                    Aceptar
-                                                </a>
-                                            @endcan
+                    @elseif($key === 'rejected')
+                        {{-- Badge roja “Rechazado” --}}
+                        <span class="inline-flex items-center space-x-1 bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100 px-2 py-0.5 rounded-full text-xs font-medium">
+                            <iconify-icon icon="heroicons-solid:x-circle" class="text-sm"></iconify-icon>
+                            <span>Rechazado</span>
+                        </span>
+                    @endif
 
-                                            @can('markAsRejected', $doc)
-                                                <a
-                                                    href="{{ route('documents.reject', ['document' => $doc->id]) . '?' . $queryParams . '&fase=' . $fase->id }}"
-                                                    class="px-2 py-1 bg-red-100 text-red-800 rounded text-xs"
-                                                >
-                                                    Rechazar
-                                                </a>
-                                            @endcan
+                    {{-- 3) Acciones permitidas sobre el documento --}}
+                    @can('update', $doc)
+                        {{-- Editar documento --}}
+                        <a
+                            href="{{ route('documents.edit', $doc) . '?' . http_build_query(['fase' => $fase->id, 'qualityControl' => $qualityControl->id]) }}"
+                            class="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700 dark:text-white transition"
+                            title="Editar documento"
+                        >
+                            <iconify-icon icon="heroicons:pencil-square" class="text-lg"></iconify-icon>
+                        </a>
+                    @endcan
 
-                                            @can('delete', $doc)
-                                                <form
-                                                    id="deleteDocForm{{ $doc->id }}"
-                                                    action="{{ route('documents.destroy', $doc) }}"
-                                                    method="POST"
-                                                >
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button
-                                                        type="button"
-                                                        onclick="sweetAlertDelete(event,'deleteDocForm{{ $doc->id }}')"
-                                                        title="Eliminar documento"
-                                                    >
-                                                        <iconify-icon icon="heroicons:trash" />
-                                                    </button>
-                                                </form>
-                                            @endcan
-                                        </div>
-                                    </li>
-                                @endforeach
-                            </ul>
+                    @if($doc->url)
+                        @can('document download')
+                            {{-- Descargar --}}
+                            <a
+                                href="{{ route('documents.download', $doc) }}"
+                                class="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700 dark:text-white transition"
+                                title="Descargar"
+                            >
+                                <iconify-icon icon="heroicons-outline:download" class="text-lg"></iconify-icon>
+                            </a>
+                        @endcan
+                    @endif
 
-                            {{-- Botón "Nuevo documento" al final de la lista de documentos --}}
-                            <div class="flex justify-start mt-4">
-                                @can('create', App\Models\Document::class)
-                                    <a
-                                        href="{{ route('documents.create') . '?' . http_build_query(['fase' => $fase->id, 'qualityControl' => $qualityControl->id]) }}"
-                                        class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
-                                    >
-                                        <iconify-icon icon="ic:round-plus" class="text-lg mr-1" />
-                                        {{ __('Nuevo documento') }}
-                                    </a>
-                                @endcan
-                            </div>
-                        @endif
+                    @can('waitingReview', $doc)
+                        {{-- Marcar como "Esperando revisión" --}}
+                        <a
+                            href="{{ route('documents.waiting-review', ['document' => $doc->id]) . '?' . http_build_query(['qualityControl' => $qualityControl->id]) . '&fase=' . $fase->id }}"
+                            class="px-2 py-0.5 bg-yellow-100 dark:bg-yellow-800 text-yellow-800 dark:text-yellow-100 rounded text-xs font-medium"
+                        >
+                            Esperando revisión
+                        </a>
+                    @endcan
+
+                    @can('markAsAccepted', $doc)
+                        {{-- Marcar como Aceptar --}}
+                        <a
+                            href="{{ route('documents.mark-as-accept', $doc) . '?' . http_build_query(['qualityControl' => $qualityControl->id]) . '&fase=' . $fase->id }}"
+                            class="px-2 py-0.5 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-100 rounded text-xs font-medium"
+                        >
+                            Aceptar
+                        </a>
+                    @endcan
+
+                    @can('markAsRejected', $doc)
+                        {{-- Marcar como Rechazar --}}
+                        <a
+                            href="{{ route('documents.reject', ['document' => $doc->id]) . '?' . http_build_query(['qualityControl' => $qualityControl->id]) . '&fase=' . $fase->id }}"
+                            class="px-2 py-0.5 bg-red-100 dark:bg-red-800 text-red-800 dark:text-red-100 rounded text-xs font-medium"
+                        >
+                            Rechazar
+                        </a>
+                    @endcan
+
+                    @can('delete', $doc)
+                        {{-- Eliminar documento --}}
+                        <form
+                            id="deleteDocForm{{ $doc->id }}"
+                            action="{{ route('documents.destroy', $doc) }}"
+                            method="POST"
+                            class="inline"
+                        >
+                            @csrf
+                            @method('DELETE')
+                            <button
+                                type="button"
+                                onclick="sweetAlertDelete(event,'deleteDocForm{{ $doc->id }}')"
+                                class="p-1 rounded hover:bg-gray-200 dark:hover:bg-slate-700 dark:text-white transition"
+                                title="Eliminar documento"
+                            >
+                                <iconify-icon icon="heroicons:trash" class="text-lg"></iconify-icon>
+                            </button>
+                        </form>
+                    @endcan
+                </div>
+            </li>
+        @endforeach
+    </ul>
+
+    {{-- Botón “Nuevo documento” al final de la lista --}}
+    <div class="flex justify-start mt-4">
+        @can('create', App\Models\Document::class)
+            <a
+                href="{{ route('documents.create') . '?' . http_build_query(['fase' => $fase->id, 'qualityControl' => $qualityControl->id]) }}"
+                class="btn inline-flex justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
+            >
+                <iconify-icon icon="ic:round-plus" class="text-lg mr-1"></iconify-icon>
+            </a>
+        @endcan
+    </div>
+@endif
+
                     </div>
                 </div>
             @endforeach
