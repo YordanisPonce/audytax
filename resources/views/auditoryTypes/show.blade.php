@@ -37,7 +37,7 @@
                     onclick="toggleCollapseAllFases()"
                     class="ml-4 text-sm text-blue-600 hover:underline focus:outline-none"
                 >
-                    Colapsar fases
+                    Colapsar Grupos
                 </button>
             </div>
 
@@ -50,7 +50,7 @@
           class="btn inline-flex  justify-center btn-dark rounded-[25px] items-center !p-2 !px-3"
         >
           <iconify-icon icon="ic:round-plus" class="text-lg mr-1"></iconify-icon>
-          {{ __('Nueva Fase') }}
+          {{ __('Nuevo Grupo') }}
         </a>
       @endcan
     </div>
@@ -238,7 +238,7 @@
                     collapseDiv?.classList.add('hidden');
                 });
                 // Cambiamos texto del botón y estado
-                document.getElementById('toggleCollapseBtn').textContent = 'Expandir fases';
+                document.getElementById('toggleCollapseBtn').textContent = 'Expandir grupos';
                 allCollapsed = true;
             } else {
                 // Si YA estaban colapsadas, expandimos todas
@@ -246,7 +246,7 @@
                     const collapseDiv = group.querySelector('[id^="collapse-fase-"]');
                     collapseDiv?.classList.remove('hidden');
                 });
-                document.getElementById('toggleCollapseBtn').textContent = 'Collapse all groups';
+                document.getElementById('toggleCollapseBtn').textContent = 'Colapsar grupos';
                 allCollapsed = false;
             }
         }

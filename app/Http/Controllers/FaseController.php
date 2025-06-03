@@ -32,16 +32,16 @@ class FaseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function create()
+    public function create( )
     {
-        $breadcrumbsItems = [
+     $breadcrumbsItems = [
             [
                 'name' => 'Auditory Type',
                 'url' => route('auditoryTypes.index'),
                 'active' => false
             ],
             [
-                'name' => 'Fases',
+                'name' => 'Grupo',
                 'url' => route('fases.index'),
                 'active' => false
             ],
@@ -54,7 +54,7 @@ class FaseController extends Controller
 
         return view('fases.create', [
             'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => __("Fases"),
+            'pageTitle' => __("Crear nuevo Grupo"),
             "auditoryTypes" => AuditoryType::all()
         ]);
     }
@@ -167,7 +167,7 @@ class FaseController extends Controller
                 'active' => false,
             ],
             [
-                'name'   => __("Fases"),
+                'name'   => __("Grupo"),
                 'url'    => route('qualityControls.show', $qualityControl),
                 'active' => false,
             ],
@@ -186,7 +186,7 @@ class FaseController extends Controller
                 'active' => false,
             ],
             [
-                'name'   => __("Fases"),
+                'name'   => __("Grupo"),
                 'url'    => route('auditoryTypes.show', $fase->auditoryType),
                 'active' => false,
             ],
@@ -202,7 +202,7 @@ class FaseController extends Controller
     return view('fases.edit', [
         'fase'            => $fase,
         'breadcrumbItems' => $breadcrumbsItems,
-        'pageTitle'       => __("Editar Fase"),
+        'pageTitle'       => __("Editar Grupo"),
         'auditoryTypes'   => AuditoryType::all(),
         // Le pasamos el valor de QC para que el blade lo inyecte
         'qualityControl'  => $qualityControl,

@@ -108,7 +108,7 @@ class AuditoryTypeController extends Controller
 {
     $breadcrumbsItems = [
         ['name' => __("Auditory Types"), 'url' => route('auditoryTypes.index'), 'active' => false],
-        ['name' => __("Fases"), 'url' => '#', 'active' => true],
+        ['name' => __("Grupos"), 'url' => '#', 'active' => true],
     ];
 
     // Carga todas las fases que NO tienen quality_control (plantilla), junto a sus documentos
@@ -120,7 +120,7 @@ class AuditoryTypeController extends Controller
     return view('auditoryTypes.show', [
         'auditoryType' => $auditoryType,
         'breadcrumbItems' => $breadcrumbsItems,
-        'pageTitle' => 'Fases de la auditoría ' . $auditoryType->name,
+        'pageTitle' => 'Lista de la auditoría ' . $auditoryType->name,
         'fases' => $fases
     ]);
 }
@@ -150,7 +150,7 @@ class AuditoryTypeController extends Controller
         return view('auditoryTypes.edit', [
             'auditoryType' => $auditoryType,
             'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => 'Mostrar Tipo de auditorìa',
+            'pageTitle' => 'Actualizar plantilla de auditoría',
         ]);
     }
 

@@ -34,7 +34,7 @@
                         {{ auth()->user()->qualityControls()->count() }}
                     </div>
                     <div class="text-sm text-slate-600 font-light dark:text-slate-300">
-                        Controles de calidad
+                        Auditorias
                     </div>
                 </div>
                 <!-- end single -->

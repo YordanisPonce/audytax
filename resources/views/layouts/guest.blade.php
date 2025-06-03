@@ -20,7 +20,7 @@
                             <x-application-logo :textSize="true" />
                         </div>
                         <p class="text-2xl italic dark:text-white">
-                            {{ __('Los controles de calidad y las auditorías mantienen altos estándares en nuestros productos y servicios.') }}
+                            {{ __('Las auditorías mantienen altos estándares en nuestros productos y servicios.') }}
                         </p>
                     </div>
                 </div>

@@ -59,7 +59,7 @@ class QualityControlController extends Controller
                     $query->whereHas('roles', function ($subquery) {
                         $subquery->where('name', 'consultant');
                     });
-                },// ————————————————————————————
+                }, // ————————————————————————————
                 // Nuevo: conteo TOTAL de documentos
                 'documents as total_documents_count',
 
@@ -126,7 +126,7 @@ class QualityControlController extends Controller
 
         return view('qualityControls.create', [
             'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => "Crear control de calidad",
+            'pageTitle' => "Crear auditoria",
             "auditoryTypes" => $auditoryTypes,
             "statuses" => $statuses,
             "clients" => $clients,
@@ -142,6 +142,7 @@ class QualityControlController extends Controller
      */
     public function store(QualityControlRequest $request)
     {
+
         $status = Status::where('key', 'waiting_review')->first();
         $qualityControl = QualityControl::create($request->only('name', 'description', 'auditory_type_id') + ['status_id' => $status->id ?: 1]);
         $ids = array_merge($request->consultants ?: [], $request->clients ?: []);
@@ -168,7 +169,7 @@ class QualityControlController extends Controller
                 'active' => false
             ],
             [
-                'name' => __("Fases"),
+                'name' => 'Grupos',
                 'url' => route('qualityControls.show', ['qualityControl' => $qualityControl]),
                 'active' => false
             ],
@@ -179,72 +180,72 @@ class QualityControlController extends Controller
             ],
         ];
 
-                        // 1) Obtener todas las entradas de historial de este QC, ordenadas de más reciente a más antiguo
-                    $histories = $qualityControl
-                                    ->histories()           // relación hasMany(History)
-                                    ->with('user')          // para que en la vista puedas acceder a $item->user
-                                    ->orderBy('created_at', 'desc')
-                                    ->get();
+        // 1) Obtener todas las entradas de historial de este QC, ordenadas de más reciente a más antiguo
+        $histories = $qualityControl
+            ->histories()           // relación hasMany(History)
+            ->with('user')          // para que en la vista puedas acceder a $item->user
+            ->orderBy('created_at', 'desc')
+            ->get();
 
-                    // 2) Comentarios (Comments)
-                    //    Cargamos eager 'user' y, si tienen respuestas anidadas, también las cargamos
-                    $comments = $qualityControl
-                                    ->comments()                      // relación hasMany(Comment)
-                                    ->with(['user', 'comments.user']) // trae al autor y al autor de cada respuesta, si hay replies
-                                    ->orderBy('created_at','desc')    // últimos primero
-                                    ->get();
+        // 2) Comentarios (Comments)
+        //    Cargamos eager 'user' y, si tienen respuestas anidadas, también las cargamos
+        $comments = $qualityControl
+            ->comments()                      // relación hasMany(Comment)
+            ->with(['user', 'comments.user']) // trae al autor y al autor de cada respuesta, si hay replies
+            ->orderBy('created_at', 'desc')    // últimos primero
+            ->get();
 
-                        $q = $request->get('q');
-                        $perPage = $request->get('per_page', 10);
-                        $sort = $request->get('sort');
-                        $fases = QueryBuilder::for(Fase::class)
-                        ->where('quality_control_id', $qualityControl->id)
-                        ->with('documents.status')
-                        ->latest()
-                        ->get();
+        $q = $request->get('q');
+        $perPage = $request->get('per_page', 10);
+        $sort = $request->get('sort');
+        $fases = QueryBuilder::for(Fase::class)
+            ->where('quality_control_id', $qualityControl->id)
+            ->with('documents.status')
+            ->latest()
+            ->get();
 
-                    // 2) Calcula cuántos documentos hay en cada estado:
-                    $statusCountsRaw = \App\Models\Document::query()
-                        ->whereIn('fase_id', $fases->pluck('id'))
-                        ->selectRaw('status_id, count(*) as count')
-                        ->groupBy('status_id')
-                        ->pluck('count', 'status_id');
+        // 2) Calcula cuántos documentos hay en cada estado:
+        $statusCountsRaw = \App\Models\Document::query()
+            ->whereIn('fase_id', $fases->pluck('id'))
+            ->selectRaw('status_id, count(*) as count')
+            ->groupBy('status_id')
+            ->pluck('count', 'status_id');
 
-                    // 3) Mapea esos status_id a sus keys (open, accepted, waiting_review, rejected):
-                    $statusKeys = \App\Models\Status::pluck('key', 'id'); // ej. [ 1=>'open', 2=>'accepted', … ]
+        // 3) Mapea esos status_id a sus keys (open, accepted, waiting_review, rejected):
+        $statusKeys = \App\Models\Status::pluck('key', 'id'); // ej. [ 1=>'open', 2=>'accepted', … ]
 
-                    $counts = [
-                        'open'           => 0,
-                        'waiting_review' => 0,
-                        'accepted'       => 0,
-                        'rejected'       => 0,
-                    ];
-                    foreach ($statusCountsRaw as $statusId => $cnt) {
-                        $key = $statusKeys[$statusId] ?? null;
-                        if ($key && isset($counts[$key])) {
-                            $counts[$key] = $cnt;
-                        }
-                    }
+        $counts = [
+            'open'           => 0,
+            'waiting_review' => 0,
+            'accepted'       => 0,
+            'rejected'       => 0,
+        ];
+        foreach ($statusCountsRaw as $statusId => $cnt) {
+            $key = $statusKeys[$statusId] ?? null;
+            if ($key && isset($counts[$key])) {
+                $counts[$key] = $cnt;
+            }
+        }
 
-                    // 4) Ahora sumamos todos los documentos para obtener el “total real”:
-                    $totalDocuments = array_sum($counts);
-                    // Si no hay documentos, forzamos a 1 para no dividir entre cero:
-                    if ($totalDocuments === 0) {
-                        $totalDocuments = 1;
-                    }
+        // 4) Ahora sumamos todos los documentos para obtener el “total real”:
+        $totalDocuments = array_sum($counts);
+        // Si no hay documentos, forzamos a 1 para no dividir entre cero:
+        if ($totalDocuments === 0) {
+            $totalDocuments = 1;
+        }
 
 
-                    return view('qualityControls.show', [
-                        'fases'         => $fases,
-                        'qualityControl'=> $qualityControl,
-                        'histories'      => $histories,
-                        'breadcrumbItems'=> $breadcrumbsItems,
-                        'comments'       => $comments,
-                        'pageTitle'     => 'Fases de la Auditoria',
-                        'statusCounts'   => $counts,
-                    'totalDocuments' => $totalDocuments,
-                        // si necesitas comments/activity, pásalos también…
-                    ]);
+        return view('qualityControls.show', [
+            'fases'         => $fases,
+            'qualityControl' => $qualityControl,
+            'histories'      => $histories,
+            'breadcrumbItems' => $breadcrumbsItems,
+            'comments'       => $comments,
+            'pageTitle'     => 'Lista de la Auditoria',
+            'statusCounts'   => $counts,
+            'totalDocuments' => $totalDocuments,
+            // si necesitas comments/activity, pásalos también…
+        ]);
     }
 
     /**
@@ -302,13 +303,18 @@ class QualityControlController extends Controller
     public function update(QualityControlRequest $request, QualityControl $qualityControl)
     {
         $qualityControl->update($request->only($qualityControl->getFillable()));
+        $ids = array_merge($request->consultants ?: [], $request->clients ?: []);
+        $qualityControl->users()->sync($ids);
 
-        $qualityControl->users()->get()->each(function (User $item) {
-            $user = User::find($item->id);
-            $user->notify(new Notify('Ha actualizado un control de calidad al cual estas asignado'));
-        });
-
-        return redirect()->route('qualityControls.index')->with('message', 'Control de calidad actualizado satisfactoriamente');
+        try {
+            $qualityControl->users()->get()->each(function (User $item) {
+                $user = User::find($item->id);
+                $user->notify(new Notify('Ha actualizado una auditoría  al cual estas asignado'));
+            });
+        } catch (\Throwable $th) {
+            //throw $th;
+        }
+        return redirect()->route('qualityControls.index')->with('message', 'Auditoría actualizada satisfactoriamente');
     }
 
     /**
@@ -358,7 +364,7 @@ class QualityControlController extends Controller
         ]);
     }
 
-     /**
+    /**
      * Guarda un comentario nuevo para este QualityControl.
      */
     public function storeComment(CommentRequest $request, QualityControl $qualityControl)

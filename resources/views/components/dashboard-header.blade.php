@@ -126,7 +126,7 @@
         </button>
 
         <!-- Dropdown oculto inicialmente -->
-        <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 shadow-lg rounded-lg z-50">
+        <div id="notifDropdown" class="hidden mr-20 absolute right-0 mt-2 w-80 bg-white dark:bg-slate-800 shadow-lg rounded-lg z-50">
             <div class="px-4 py-2 border-b dark:border-slate-700">
                 <span class="font-semibold text-gray-800 dark:text-gray-200">{{ __('Notifications') }}</span>
             </div>

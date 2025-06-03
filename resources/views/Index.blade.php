@@ -1,7 +1,7 @@
 <x-app-layout>
     <div class="space-y-8">
         <div class="items-center justify-between mb-6">
-            <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="$pageTitle" />
+            <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="''" />
         </div>
         {{-- Dashboard Top Card --}}
         <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-7">
@@ -44,7 +44,7 @@
                             <iconify-icon icon="fluent-mdl2:compliance-audit"></iconify-icon>
                         </div>
                         <h4 class="font-Interfont-normal text-sm text-textColor dark:text-white pb-1">
-                            {!! __('Tipos de auditor&iacute;a') !!}
+                            {!! __('Plantillas de auditoria') !!}
                         </h4>
                         <p class="font-Intertext-xl text-black dark:text-white font-medium">
                             {{ $data['productSold']['total'] }}
@@ -61,7 +61,7 @@
                             <iconify-icon icon="icon-park-twotone:inspection"></iconify-icon>
                         </div>
                         <h4 class="font-Interfont-normal text-sm text-textColor dark:text-white pb-1">
-                            Controles de Calidad
+                            Auditoria
                         </h4>
                         <p class="font-Intertext-xl text-black dark:text-white font-medium">
                             {{ $data['growth']['total'] }}
@@ -79,7 +79,7 @@
                             <iconify-icon icon="icon-park-twotone:inspection"></iconify-icon>
                         </div>
                         <h4 class="font-Interfont-normal text-sm text-textColor dark:text-white pb-1">
-                            Controles de Calidad
+                            Auditorias
                         </h4>
                         <p class="font-Intertext-xl text-black dark:text-white font-medium">
                             {{ $data['qualityControls'] }}
@@ -96,7 +96,7 @@
                             <iconify-icon icon="codicon:comment"></iconify-icon>
                         </div>
                         <h4 class="font-Interfont-normal text-sm text-textColor dark:text-white pb-1">
-                            {!! __('Comentarios.') !!}
+                            {!! __('Comentarios') !!}
                         </h4>
                         <p class="font-Intertext-xl text-black dark:text-white font-medium">
                             {{ $data['comments'] }}
@@ -128,24 +128,34 @@
         @isset($data['links'])
             <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-7">
                 @foreach ($data['links'] as $link)
-                    <a href="{{ route('qualityControls.details', ['qualityControl' => $link, 'fase' => $link->getActiveFase()]) }}"
-                        class="bg-white dark:bg-slate-800 rounded-md px-5 py-4 cursor-pointer hover:scale-95 transition-all">
-                        <div class="relative h-10 flex items-center gap-2">
-                            <div
-                                class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-800 text-base flex items-center justify-center left-0 top-2">
-                                <iconify-icon icon="fluent-mdl2:compliance-audit"></iconify-icon>
-                            </div>
-                            <h4 class="font-Interfont-normal text-sm text-textColor dark:text-white pb-1 flex items-center">
-                                <span>
-                                    {!! $link->name !!}
-                                </span>
-                            </h4>
-                        </div>
-                        <div class="ml-auto w-24">
-                            <div id="EChart2"></div>
-                        </div>
-                    </a>
-                @endforeach
+    @php
+        // Verifica si todos los documentos están aceptados
+        $isCompleted = $link->documents->count() > 0 && $link->documents->every(function($doc) {
+            return optional($doc->status)->key === \App\Enums\StatusEnum::Accepted->value;
+        });
+    @endphp
+    <a  style="cursor:pointer"  href="{{ route('qualityControls.details', ['qualityControl' => $link, 'fase' => $link->getActiveFase()]) }}"
+        class="{{ $isCompleted ? 'bg-green-100 border-green-500' : 'bg-white' }} dark:bg-slate-800 rounded-md px-5 py-4 cursor-pointer hover:scale-95 transition-all border-2">
+        <div class="relative h-10 flex items-center gap-2">
+            <div
+                class="w-10 h-10 rounded-full {{ $isCompleted ? 'bg-green-200 text-green-800' : 'bg-indigo-100 text-indigo-800' }} text-base flex items-center justify-center left-0 top-2">
+                <iconify-icon icon="fluent-mdl2:compliance-audit"></iconify-icon>
+            </div>
+            <h4 class="font-Interfont-normal text-sm text-textColor dark:text-white pb-1 flex items-center">
+                <span>
+                    {!! $link->name !!}
+                </span>
+                @if($isCompleted)
+                    <iconify-icon icon="mdi:check-circle" class="ml-2 text-green-600"></iconify-icon>
+                @endif
+            </h4>
+        </div>
+        <div class="ml-auto w-24">
+            <div id="EChart2"></div>
+        </div>
+    </a>
+@endforeach
+
             </div>
         @endisset
     </div>

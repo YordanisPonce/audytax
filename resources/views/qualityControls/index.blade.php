@@ -49,7 +49,7 @@
                                     <tr>
                                         <th scope="col" class="table-th">{{ __('Name') }}</th>
                                         <th scope="col" class="table-th">{{ __('Auditory Type') }}</th>
-                                        <th scope="col" class="table-th">{{ __('Fases') }}</th>
+                                        <th scope="col" class="table-th">{{ __('Grupos') }}</th>
                                         <th scope="col" class="table-th">{{ __('Clients') }}</th>
                                         <th scope="col" class="table-th">{{ __('Consultors') }}</th>
                                         <th scope="col" class="table-th">{{ __('Status') }}</th>

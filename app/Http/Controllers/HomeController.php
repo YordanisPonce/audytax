@@ -123,7 +123,8 @@ class HomeController extends Controller
                 $query->where('id', auth()->id());
             })->count();
 
-            $links = auth()->user()->qualityControls()->simplePaginate(10);
+            $links = auth()->user()->qualityControls()->with(['documents.status'])->simplePaginate(10);
+
             $chartData = [
                 'qualityControls' => $totalQualityControl,
                 'comments' => $comments,

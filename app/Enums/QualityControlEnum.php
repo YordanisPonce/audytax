@@ -4,8 +4,8 @@ namespace App\Enums;
 
 enum QualityControlEnum: string
 {
-    case DELETED = 'Ha eliminado un control de calidad';
-    case UPDATED = 'Ha actualizado un control de calidad';
-    case CREATED = 'Ha creado un nuevo control de calidad';
-    case FASE_UPDATED = 'Ha actualizado un control de calidad';
+    case DELETED = 'Ha eliminado una auditoria';
+    case UPDATED = 'Ha actualizado una auditoria';
+    case CREATED = 'Ha creado una nueva  auditoria';
+    case FASE_UPDATED = 'Ha actualizado una auditoria';
 }
