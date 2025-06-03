@@ -14,13 +14,13 @@
     {{-- ===================================================================
     CONTENIDO PRINCIPAL: Fases → Documentos
     =================================================================== --}}
-    <div class="px-15 mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 dark:text-white">
+    <div class="px-20 mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6 dark:text-white">
         {{-- 1) El acordeón ocupa 2/3 en pantallas grandes --}}
         <div class="lg:col-span-2 space-y-4 w-full">
             {{-- ===================================================================
                 BUSCADOR GENERAL + BOTÓN COLLAPSE/EXPAND ALL
                 =================================================================== --}}
-            <div class="px-5 mx-auto flex justify-between items-center mb-6">
+            <div class="mx-auto flex justify-between items-center mb-6">
                 {{-- Contenedor del input con borde neutro, que cambia a azul en focus --}}
                 <div class="flex items-center border border-gray-300 rounded-md overflow-hidden w-full max-w-2xl
                             focus-within:border-blue-500 transition-colors duration-200">

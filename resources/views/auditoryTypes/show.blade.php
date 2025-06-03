@@ -10,12 +10,12 @@
 
   
   {{-- Lista de fases tipo acordeón --}}
-  <div class="space-y-4  mx-auto px-5 dark:text-white">
+  <div class="space-y-4  mx-auto px-20 dark:text-white">
 
       {{-- ===================================================================
                 BUSCADOR GENERAL + BOTÓN COLLAPSE/EXPAND ALL
                 =================================================================== --}}
-            <div class="px-5 mx-auto flex justify-between items-center mb-6">
+            <div class=" mx-auto flex justify-between items-center mb-6">
                 {{-- Contenedor del input con borde neutro, que cambia a azul en focus --}}
                 <div class="flex items-center border border-gray-300 rounded-md overflow-hidden w-full max-w-2xl
                             focus-within:border-blue-500 transition-colors duration-200">

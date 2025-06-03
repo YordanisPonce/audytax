@@ -11,7 +11,7 @@
             <x-breadcrumb :subtitle="'Completado: ' . $qualityControl->getFinishPercent() . '%'" :breadcrumb-items="$breadcrumbItems" :page-title="$pageTitle" />
 
         </div>
-        <div class="flex md:flex-col max-md:gap-2 ">
+        <div class="flex md:flex-col max-md:gap-2 px-20">
 
             <div @class([
                 'flex max-md:flex-col relative gap-8 items-center md:overflow-hidden max-md:w-12 h-full',

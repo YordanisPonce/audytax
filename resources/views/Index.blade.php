@@ -4,7 +4,7 @@
             <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="''" />
         </div>
         {{-- Dashboard Top Card --}}
-        <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-7">
+        <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-7 px-20">
             <div class="dasboardCard bg-white dark:bg-slate-800 rounded-md px-5 py-4 flex items-center justify-between bg-center bg-cover bg-no-repeat"
                 style="background-image:url('{{ asset('/images/ecommerce-wid-bg.png') }}')">
                 <div class="w-56 ">
@@ -126,7 +126,7 @@
             @endif
         </div>
         @isset($data['links'])
-            <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-7">
+            <div class="grid sm:grid-cols-2 xl:grid-cols-4 gap-7 px-20">
                 @foreach ($data['links'] as $link)
     @php
         // Verifica si todos los documentos están aceptados
