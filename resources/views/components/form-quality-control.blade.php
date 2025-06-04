@@ -1,4 +1,5 @@
-@props(['qualityControl', 'label', 'auditoryTypes', 'statuses', 'clients', 'consultants'])
+@props(['qualityControl', 'label', 'auditoryTypes', 'statuses', 'clients', 'consultants', 'assignedClientIds' => [], 
+    'assignedConsultantIds' => []])
 
 <div class="bg-white dark:bg-slate-800 rounded-md p-5 pb-6">
 
@@ -55,26 +56,29 @@
         <div>
             <label for="clients" class="form-label">{{ __('Clients') }}</label>
             <select name="clients[]" id="clients" class="select2 form-control w-full mt-2 py-2" multiple="multiple">
-                @foreach ($clients as $client)
-                    <option value="{{ $client->id }}"
-                        class=" inline-block font-Inter font-normal text-sm text-slate-600">{{ $client->name }}
-                    </option>
-                @endforeach
-            </select>
+    @foreach ($clients as $client)
+        <option value="{{ $client->id }}"
+    @selected(in_array($client->id, $assignedClientIds))
+    class="inline-block font-Inter font-normal text-sm text-slate-600">
+    {{ $client->name }}
+</option>
+    @endforeach
+</select>
         </div>
         {{-- clients input end --}}
 
         {{-- consultants input start --}}
         <div>
             <label for="consultants" class="form-label">{{ __('Consultants') }}</label>
-            <select name="consultants[]" id="consultants" class="select2 form-control w-full mt-2 py-2"
-                multiple="multiple">
-                @foreach ($consultants as $consultant)
-                    <option value="{{ $consultant->id }}"
-                        class=" inline-block font-Inter font-normal text-sm text-slate-600">{{ $consultant->name }}
-                    </option>
-                @endforeach
-            </select>
+            <select name="consultants[]" id="consultants" class="select2 form-control w-full mt-2 py-2" multiple="multiple">
+    @foreach ($consultants as $consultant)
+        <option value="{{ $consultant->id }}"
+            @selected(in_array($consultant->id, $assignedConsultantIds))
+            class="inline-block font-Inter font-normal text-sm text-slate-600">
+            {{ $consultant->name }}
+        </option>
+    @endforeach
+</select>
         </div>
         {{-- consultants input end --}}
     </div>

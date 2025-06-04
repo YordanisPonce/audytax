@@ -59,18 +59,46 @@
                     <span>En revisión</span>
                 </span>
             @else
+
+
                 {{-- Admin/Consultor ve botones “Aceptar” y “Rechazar” --}}
-                <a href="{{ route('documents.mark-as-accept', ['document' => $document]) }}"
+             {{-- Formulario de Aceptar --}}
+<form 
+    action="{{ route('documents.mark-as-accept', ['document' => $document]) }}"
+    method="GET"
+    class="inline confirm-form"
+    data-action="accept"
+>
+    @csrf
+    <a href="{{ route('documents.mark-as-accept', ['document' => $document]) }}"
                    class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition"
                    title="Aceptar">
                     <iconify-icon icon="heroicons-solid:check-circle" class="text-2xl text-green-500"></iconify-icon>
                 </a>
-                <a href="{{ route('documents.reject', ['document' => $document]) }}"
-                   class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition"
-                   title="Rechazar">
-                    <iconify-icon icon="heroicons-solid:x-circle" class="text-2xl text-red-500"></iconify-icon>
-                </a>
+</form>
+
+<form 
+    action="{{ route('documents.reject', ['document' => $document]) }}"
+    method="GET"
+    class="inline confirm-form"
+    data-action="reject"
+>
+    @csrf
+    <button 
+        type="submit"
+        class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer"
+        title="Rechazar"
+        style="background: transparent; border: none;"
+    >
+        <iconify-icon icon="heroicons-solid:x-circle" class="text-2xl text-red-500"></iconify-icon>
+    </button>
+</form>
+
+
+
             @endhasrole
+
+
 
         {{-- — 3) ESTADO “ACCEPTED” (Aceptado) — --}}
         @elseif($key === 'accepted')
@@ -171,6 +199,46 @@
             });
         }
     }
+
+document.addEventListener('DOMContentLoaded', function () {
+    const forms = document.querySelectorAll('.confirm-form');
+
+    forms.forEach(form => {
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            const action = form.getAttribute('data-action');
+            let title = '';
+            let confirmButtonText = '';
+
+            if (action === 'accept') {
+                title = '¿Está seguro que desea aceptar este documento?';
+                confirmButtonText = 'Aceptar';
+            } else if (action === 'reject') {
+                title = '¿Está seguro que desea rechazar este documento?';
+                confirmButtonText = 'Rechazar';
+            } else {
+                title = '¿Está seguro de realizar esta acción?';
+                confirmButtonText = 'Sí';
+            }
+
+            Swal.fire({
+                title: title,
+                icon: 'question',
+                showDenyButton: true,
+                confirmButtonText: confirmButtonText,
+                denyButtonText: 'Cancelar',
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    });
+});
+
+
+
     initTooltipPicker();
 </script>
 @endpush

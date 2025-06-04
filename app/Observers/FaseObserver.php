@@ -34,7 +34,7 @@ class FaseObserver
     {
         if ($fase && isset($fase->qualityControl)) {
             $label = $fase->status->label;
-            $this->notify("Ha cambiado la fase $fase->name a el estado de $label", $fase->qualityControl);
+            $this->notify("Ha cambiado el grupo $fase->name a el estado de $label", $fase->qualityControl);
         }
     }
 
@@ -48,7 +48,7 @@ class FaseObserver
     {
         if ($fase && isset($fase->qualityControl)) {
             $label = $fase->status->label;
-            $this->notify("Ha borrado la fase $fase->name en el estado de $label", $fase->qualityControl);
+            $this->notify("Ha borrado el grupo $fase->name en el estado de $label", $fase->qualityControl);
         }
     }
 

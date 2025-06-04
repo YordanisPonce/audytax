@@ -268,6 +268,17 @@ class QualityControlController extends Controller
                 'active' => true
             ],
         ];
+         $assignedClientIds = $qualityControl->users()
+    ->whereHas('roles', fn($q) => $q->where('name', 'client'))
+    ->pluck('users.id')->toArray();
+
+$assignedConsultantIds = $qualityControl->users()
+    ->whereHas('roles', fn($q) => $q->where('name', 'consultant'))
+    ->pluck('users.id')->toArray();
+
+
+
+
         $auditoryTypes = AuditoryType::all();
         $statuses = Status::all();
         $clients = User::whereHas('roles', function ($query) {
@@ -290,6 +301,8 @@ class QualityControlController extends Controller
             "statuses" => $statuses,
             "clients" => $clients,
             "consultants" => $consultants,
+              "assignedClientIds" => $assignedClientIds,
+              "assignedConsultantIds" => $assignedConsultantIds,
         ]);
     }
 
@@ -326,7 +339,7 @@ class QualityControlController extends Controller
     public function destroy(QualityControl $qualityControl)
     {
         $qualityControl->delete();
-        return redirect()->route('qualityControls.index')->with('message', 'Control de calidad eliminado satisfactoriamente');
+        return redirect()->route('qualityControls.index')->with('message', 'Auditoría eliminada satisfactoriamente');
     }
 
     public function getDetails(QualityControl $qualityControl, Request $request)

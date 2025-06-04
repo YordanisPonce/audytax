@@ -70,7 +70,7 @@
                         class="mt-4 text-xs text-blue-500 float-right flex items-center gap-2 md:hidden">Ver
                         documentos {{-- <iconify-icon icon="formkit:arrowright" /> --}}</a>
                 </div>
-                <div class="flex gap-11 mt-4 px-3 max-md:hidden min-h-[500px]">
+                <div class="flex gap-11 mt-4 max-md:hidden min-h-[500px]">
 
 
 

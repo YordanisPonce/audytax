@@ -19,13 +19,13 @@
                         </small>
                     </p>
                 </div>
-                @if (!$comment->comment_id)
+                {{-- @if (!$comment->comment_id)
                     <button onclick="handleNavigateToForm(event, '{{ $comment->id }}')"
                         class="ml-auto h-fit text-slate-500 dark:text-white hover:text-primary-500 dark:hover:text-primary-500 text-xs transition-colors">
                         <iconify-icon class="nav-icon relative top-[2px] leading-3" icon="subway:reply"></iconify-icon>
                         <span class="max-sm:hidden">Responder</span>
                     </button>
-                @endif
+                @endif --}}
             </div>
             <p class="mt-3 text-slate-500 dark:text-white comment">
                 {{ $comment->comment }}

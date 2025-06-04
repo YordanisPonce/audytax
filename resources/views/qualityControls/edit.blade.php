@@ -11,7 +11,17 @@
             class="max-w-4xl m-auto">
             @csrf
             @method('PUT')
-            <x-form-quality-control :qualityControl="$qualityControl" :auditoryTypes="$auditoryTypes" :consultants="$consultants" :clients="$clients" :statuses="$statuses" :label="__('Save')" />
+            <x-form-quality-control 
+    :qualityControl="$qualityControl" 
+    :auditoryTypes="$auditoryTypes" 
+    :consultants="$consultants" 
+    :clients="$clients" 
+    :statuses="$statuses" 
+    :label="__('Save')" 
+    :assignedClientIds="$assignedClientIds"
+    :assignedConsultantIds="$assignedConsultantIds" 
+/>
+
         </form>
         {{-- Update user form end --}}
     </div>

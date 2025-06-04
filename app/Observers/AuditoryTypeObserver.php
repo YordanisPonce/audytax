@@ -22,7 +22,7 @@ class AuditoryTypeObserver
     {
         $status = Status::where('key', StatusEnum::Open->value)->first();
         Fase::create([
-            'name' => 'Fase 1', 'description' => 'Descripcion de la fase 1', 'auditory_type_id' => $auditoryType->id, 'status_id' =>  $status->id
+            'name' => 'Grupo 1', 'description' => 'Descripcion del grupo 1', 'auditory_type_id' => $auditoryType->id, 'status_id' =>  $status->id
         ]);
     }
 
