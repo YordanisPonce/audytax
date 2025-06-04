@@ -70,11 +70,14 @@
     data-action="accept"
 >
     @csrf
-    <a href="{{ route('documents.mark-as-accept', ['document' => $document]) }}"
-                   class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition"
-                   title="Aceptar">
-                    <iconify-icon icon="heroicons-solid:check-circle" class="text-2xl text-green-500"></iconify-icon>
-                </a>
+   <button 
+        type="submit"
+        class="p-1 rounded hover:bg-slate-100 dark:hover:bg-slate-700 transition cursor-pointer"
+        title="Aceptar"
+        style="background: transparent; border: none;"
+    >
+        <iconify-icon icon="heroicons-solid:check-circle" class="text-2xl text-green-500"></iconify-icon>
+    </button>
 </form>
 
 <form 

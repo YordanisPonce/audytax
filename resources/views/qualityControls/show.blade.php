@@ -290,7 +290,7 @@
         {{-- ===================================================================
             2) Pestañas: Estado / Comentarios / Actividad
             =================================================================== --}}
-        <div class="bg-white dark:bg-slate-800 rounded-md shadow-sm h-96 flex flex-col">
+        <div class="bg-white dark:bg-slate-800 rounded-md shadow-sm h-96 flex flex-col sticky top-[7rem]">
             {{-- Tabs --}}
             <nav class="flex border-b dark:border-slate-700">
                 <button
