@@ -150,4 +150,29 @@ body.dark .row-fully-accepted {
   background-color: rgba(16, 185, 129, 0.25); /* verde oscuro semitransparente en modo oscuro */
 }
 
+/* Estilos responsive para el botón de exportación */
+@media (max-width: 1600px) {
+    .export-text {
+        display: none;
+    }
+
+    .export-icon {
+        margin-right: 0;
+    }
+}
+
+/* Animación de spinner */
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.animate-spin {
+    animation: spin 1s linear infinite;
+}
 

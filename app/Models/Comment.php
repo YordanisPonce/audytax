@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Comment extends Model
 {
     use HasFactory;
-    protected $fillable = ['comment', 'status_id', 'user_id', 'fase_id', 'quality_control_id', 'comment_id'];
+    protected $fillable = ['comment', 'status_id', 'user_id', 'fase_id', 'quality_control_id', 'comment_id', 'comment_id', 'document_id',];
     protected $with = ['user', 'comments'];
 
 
@@ -31,5 +31,10 @@ class Comment extends Model
     public function qualityControl()
     {
         return $this->belongsTo(QualityControl::class);
+    }
+
+    public function document(): BelongsTo
+    {
+        return $this->belongsTo(Document::class);
     }
 }

@@ -21,6 +21,8 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\GeneralSettingController;
 use App\Http\Controllers\FaseController;
 use App\Http\Controllers\QualityControlController;
+use App\Exports\HistoriesExport;
+use Maatwebsite\Excel\Facades\Excel;
 
 require __DIR__ . '/auth.php';
 
@@ -66,7 +68,11 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
          Route::get('{document}/reject',        'markAsRejected')
               ->name('reject');
      });
-    
+
+    Route::get('documents/{document}/comments', [CommentController::class, 'getCommentsByDocument'])
+        ->name('comments.by-document');
+
+
 
     // qualityControl
     Route::resource('qualityControls', QualityControlController::class);
@@ -99,4 +105,11 @@ Route::group(['middleware' => ['auth', 'verified']], function () {
     Route::controller(CommentController::class)->prefix('comments')->as('comments.')->group(function () { 
         Route::get('comments-by-fase/{fase}', 'getCommentsByFase')->name('get-by-fase');
     });
+
+    Route::get('/quality-controls/{qualityControl}/export-history', function (App\Models\QualityControl $qualityControl) {
+        return Excel::download(
+            new HistoriesExport($qualityControl->id),
+            'historial-auditoria-' . $qualityControl->id . '.xlsx'
+        );
+    })->middleware('auth')->name('quality-controls.export-history');
 });

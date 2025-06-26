@@ -16,6 +16,12 @@ class History extends Model
         return $this->belongsTo(User::class);
     }
 
+    // Añade esta relación
+    public function qualityControl()
+    {
+        return $this->belongsTo(QualityControl::class);
+    }
+
     public function getCreatedAtAttribute($value)
     {
         return Carbon::parse($value)->diffForHumans();

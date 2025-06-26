@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Document;
 use App\Models\Fase;
 use Illuminate\Foundation\Http\FormRequest;
 
@@ -25,15 +26,31 @@ class CommentRequest extends FormRequest
     public function rules()
     {
         return [
-            'comment' => 'required|string'
+            'comment'              => 'required|string',
+            'fase_id'              => 'required|exists:fases,id',
+            'quality_control_id'   => 'required|exists:quality_controls,id',
+            'comment_id'           => 'nullable|exists:comments,id',
+            'document_id'          => 'nullable|exists:documents,id',
         ];
     }
 
-   
+
+
     protected function prepareForValidation()
     {
-        // 1) Si el form trae 'fase_id', lo usamos para obtener quality_control_id:
-        if ($this->has('fase_id')) {
+        // 0) Si viene sólo document_id, derivamos fase y QC de ahí
+        if ($this->filled('document_id')) {
+            $doc = Document::find($this->input('document_id'));
+            if ($doc) {
+                $this->merge([
+                    'fase_id'            => $doc->fase_id,
+                    'quality_control_id' => $doc->quality_control_id,
+                ]);
+            }
+        }
+
+        // 1) Si ya nos llegó fase_id, garantizamos quality_control_id
+        if ($this->filled('fase_id')) {
             $fase = Fase::find($this->input('fase_id'));
             if ($fase) {
                 $this->merge([
@@ -41,19 +58,17 @@ class CommentRequest extends FormRequest
                 ]);
             }
         }
-        // 2) Si no hay 'fase_id', pero la ruta trae un QualityControl,
-        //    aprovechamos el route‐model binding para inyectarlo:
-        elseif ($this->route('qualityControl')) {
-            // En rutas como /qualityControls/{qualityControl}/comments
-            $qc = $this->route('qualityControl');
+        // 2) (opcional) Si en la ruta viene directament QC
+        elseif ($qc = $this->route('qualityControl')) {
             $this->merge([
                 'quality_control_id' => $qc->id,
             ]);
         }
 
-        // 3) Siempre dejamos comment_id (si viene un “reply” anidado):
+        // 3) Normalizamos comment_id y document_id a null si vienen vacíos
         $this->merge([
-            'comment_id' => $this->comment_id ?: null,
+            'comment_id'  => $this->input('comment_id')  ?: null,
+            'document_id' => $this->input('document_id') ?: null,
         ]);
     }
 }

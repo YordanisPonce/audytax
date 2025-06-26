@@ -4,10 +4,12 @@ namespace App\Observers;
 
 use App\Models\Comment;
 use App\Models\User;
-use App\Notifications\Notify;
+use App\Traits\Notify as NotifyTrait;  // tu trait
+
 
 class CommentObserver
 {
+    use NotifyTrait;
     /**
      * Handle the Comment "created" event.
      *
@@ -16,11 +18,27 @@ class CommentObserver
      */
     public function created(Comment $comment)
     {
-        $comment->qualityControl->users()->get()->each(function (User $item) use ($comment) {
-            $user = User::find($item->id);
-            $user->notify(new Notify('Ha comentado en el control de calidad ' . $comment->qualityControl->name));
+        $qc = $comment->qualityControl;
+
+        // 1) Crea la entrada en histories
+        $userName = $comment->user->name;
+        $docPart  = $comment->document
+            ? ' en el documento «' . $comment->document->name . '»'
+            : '';
+        $message  = "{$userName} comentó{$docPart}: {$comment->comment}";
+
+        // Este notify viene de tu NotifyTrait y grabará en histories
+        $this->notify($message, $qc);
+
+        // 2) Luego, opcionalmente, dispara la notificación real a los usuarios
+        $qc->users->each(function (User $u) use ($qc) {
+            // ej: email, push, etc. (usa la clase Notification que prefieras)
+            $u->notify(new \App\Notifications\Notify(
+                "Hay un nuevo comentario en \"{$qc->name}\""
+            ));
         });
     }
+
 
     /**
      * Handle the Comment "updated" event.

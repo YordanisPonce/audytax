@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CommentRequest;
 use App\Models\Comment;
+use App\Models\Document;
 use App\Models\Fase;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +44,7 @@ class CommentController extends Controller
      */
     public function store(CommentRequest $request)
     {
-        Auth::user()->comments()->create($request->only('comment', 'user_id', 'fase_id', 'quality_control_id', 'comment_id'));
+        Auth::user()->comments()->create($request->only('comment', 'user_id', 'fase_id', 'quality_control_id', 'comment_id', 'document_id'));
         return redirect()->back()->with('comments', 1);
     }
 
@@ -116,5 +117,16 @@ class CommentController extends Controller
             "comments" => $comments
         ]);
 
+    }
+
+    public function getCommentsByDocument(Document $document)
+    {
+        $comments = $document->comments()
+            ->whereNull('comment_id')
+            ->latest()
+            ->get();
+
+        // preparar breadcrumbs, títulos, etc…
+        return view('comments.by-document', compact('document', 'comments'));
     }
 }

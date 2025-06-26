@@ -77,7 +77,7 @@
 
 
 
-                    
+
 
 
                     {{--  --}}
@@ -92,9 +92,9 @@
                             <div class="card-text h-full">
                                 <div>
 
-                                    
-                                    <ul class="nav nav-tabs flex flex-wrap list-none border-b-0 pl-0 mb-4"
-                                        id="tabs-tab" role="tablist">
+
+                                    <ul class="nav nav-tabs flex flex-wrap list-none border-b-0 pl-0 mb-4" id="tabs-tab"
+                                        role="tablist">
                                         <li class="nav-item" role="presentation">
                                             <a href="#tabs-home-withIcon" @class([
                                                 'nav-link w-full flex items-center font-medium text-sm font-Inter leading-tight capitalize border-x-0 border-t-0 border-b border-transparent px-4 pb-2 my-2 hover:border-transparent focus:border-transparent dark:text-slate-300',
@@ -117,7 +117,8 @@
                                                 aria-controls="tabs-profile-withIcon" aria-selected="false">
                                                 <iconify-icon class="mr-1"
                                                     icon="heroicons-outline:chat-alt-2"></iconify-icon>
-                                                &nbsp;Comentarios({{ $qualityControl->getCount() }})</a>
+                                                &nbsp;Comentarios({{ $qualityControl->comments->whereNull('document_id')->count() }})
+                                            </a>
                                         </li>
                                         <li class="nav-item" role="presentation">
                                             <a href="#tabs-messages-withIcon"
@@ -138,10 +139,70 @@
                                             <form class="grow truncate" enctype="multipart/form-data" method="POST"
                                                 action="{{ route('documents.save-files', $fase) }}">
                                                 @csrf
+
+
                                                 @foreach ($fase->documents as $item)
-                                                    <x-file-picker :document="$item" :fileId="'input-file-' . $loop->iteration" :fileName="'files[' . $item->id . ']'" />
-                                                @endforeach
-                                                @if ($fase->isOpen()|| $fase->isRejected())
+    {{-- 1) Formulario de subida de este documento (si aplica) --}}
+    <form enctype="multipart/form-data"
+          method="POST"
+          action="{{ route('documents.save-files', $fase) }}"
+          class="mb-4">
+        @csrf
+        <x-file-picker
+            :document="$item"
+            :fileId="'input-file-' . $loop->iteration"
+            :fileName="'files[' . $item->id . ']'"
+        />
+        {{-- @if($fase->isOpen() || $fase->isRejected())
+            @hasrole('client')
+                <button type="submit" class="btn btn-primary btn-sm mt-2">Subir</button>
+            @endhasrole
+        @endif --}}
+    </form>
+
+    {{-- 2) Botón que despliega/oculta comentarios --}}
+    <button
+        type="button"
+        class="flex items-center text-sm text-gray-600 hover:text-blue-500 mb-2"
+        onclick="toggleComments({{ $item->id }})"
+    >
+        <iconify-icon icon="heroicons-outline:chat-alt-2" class="mr-1"></iconify-icon>
+        Comentarios ({{ $item->comments()->whereNull('comment_id')->count() }})
+    </button>
+
+    {{-- 3) Bloque de comentarios oculto por defecto --}}
+    <div id="comments-{{ $item->id }}" class="hidden ml-4 mb-6">
+        {{-- Listado de comentarios --}}
+        @foreach($item->comments()->whereNull('comment_id')->latest()->get() as $comment)
+            <div class="p-2 bg-gray-100 rounded mb-2">
+                <strong>{{ $comment->user->name }}:</strong>
+                {{ $comment->comment }}
+                <small class="text-xs text-gray-500">{{ $comment->created_at }}</small>
+            </div>
+        @endforeach
+
+        {{-- Formulario de nuevo comentario --}}
+        @if($fase->isOpen() || $fase->isRejected())
+            <form action="{{ route('comments.store') }}"
+                  method="POST"
+                  class="flex gap-2 mt-2">
+                @csrf
+                <input type="hidden" name="quality_control_id" value="{{ $qualityControl->id }}">
+                <input type="hidden" name="fase_id"            value="{{ $fase->id }}">
+                <input type="hidden" name="document_id"       value="{{ $item->id }}">
+                <input type="text"
+                       name="comment"
+                       placeholder="Escribe tu comentario..."
+                       class="flex-1 border rounded px-2 py-1"
+                       required
+                >
+                <button type="submit" class="btn btn-sm btn-primary">Enviar</button>
+            </form>
+        @endif
+    </div>
+@endforeach
+
+                                                @if ($fase->isOpen() || $fase->isRejected())
                                                     @hasrole('client')
                                                         <button type="submit"
                                                             class="btn btn-primary btn-sm mt-3">Subir</button>
@@ -157,8 +218,16 @@
                                             aria-labelledby="tabs-profile-withIcon-tab">
                                             <div @class(['flex flex-col h-full comment-panel reltive'])>
                                                 <div class="grow overflow-scroll  h-full" id="comment-area">
-                                                    @forelse ($qualityControl->comments as $item)
-                                                        <x-comment :comment="$item" />
+                                                    @php
+                                                    $generalComments = $qualityControl
+                                                        ->comments()
+                                                        ->whereNull('document_id')
+                                                        ->latest()
+                                                        ->get();
+                                                @endphp
+                                                
+                                                @forelse ($generalComments as $item)
+                                                    <x-comment :comment="$item" />
                                                     @empty
                                                         <div class="h-full flex items-center justify-center">
                                                             <p class="text-xl m-auto text-center">
@@ -193,7 +262,7 @@
                                                                     <div
                                                                         class="lg:h-10 lg:w-10 h-7 w-7 rounded-full flex-1 bg-gray-500">
                                                                         <img class="block w-full h-full object-cover rounded-full"
-                                                                            src="{{ auth()->user()->avatar ?: Avatar::create(auth()->user()->name)->setDimension(400)->setFontSize(240)->toBase64() }}"
+                                                                            src="{{ auth()->user()->avatar ?:Avatar::create(auth()->user()->name)->setDimension(400)->setFontSize(240)->toBase64() }}"
                                                                             alt="user" />
                                                                     </div>
                                                                 </div>
@@ -223,13 +292,15 @@
                                         </div>
                                         <div class="tab-pane fade" id="tabs-messages-withIcon" role="tabpanel"
                                             aria-labelledby="tabs-messages-withIcon-tab">
-                                            <div class="max-h-[400px] overflow-y-auto text-slate-800 block w-full px-4 py-2 text-sm relative">
+                                            <div
+                                                class="max-h-[400px] overflow-y-auto text-slate-800 block w-full px-4 py-2 text-sm relative">
                                                 @foreach ($qualityControl->histories as $item)
                                                     <div
                                                         class="flex ltr:text-left rtl:text-right mb-2  border-b-[.5px] border-opacity-75 pb-2">
                                                         <div class="flex-none ltr:mr-3 rtl:ml-3">
                                                             <div class="h-8 w-8 bg-white rounded-full">
-                                                                <img src="{{ $item->user->avatar ?: Avatar::create(auth()->user()->name)->setDimension(400)->setFontSize(240)->toBase64() }}" alt="user"
+                                                                <img src="{{ $item->user->avatar ?:Avatar::create(auth()->user()->name)->setDimension(400)->setFontSize(240)->toBase64() }}"
+                                                                    alt="user"
                                                                     class="border-white block w-full h-full object-cover rounded-full border">
                                                             </div>
                                                         </div>
@@ -268,7 +339,7 @@
 
 
 
-{{-- Componente derecho  --}}
+                    {{-- Componente derecho  --}}
                     <div class="card min-w-[400px] h-fit max-w-[400px] order-second">
                         <div class="card-header">
                             <h4 class="card-title">{{ $fase->name }}</h4>
@@ -313,6 +384,17 @@
 
 
                             </div>
+
+                            @role('consultant')
+                                <div class="mt-4 border-t pt-3">
+                                    <a href="{{ route('quality-controls.export-history', $qualityControl) }}"
+                                        id="export-button"
+                                        class="flex items-center justify-center w-full px-3 py-2 text-sm rounded-md bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 transition-colors">
+                                        <iconify-icon icon="mdi:file-excel" class="mr-2 text-lg export-icon"></iconify-icon>
+                                        <span class="export-text">Exportar Historial</span>
+                                    </a>
+                                </div>
+                            @endrole
                         </div>
                     </div>
 
@@ -348,6 +430,9 @@
                 }, 200);
             }
 
+            
+
+
             window.onload = () => {
                 "@if (session('comments'))"
                 const div = document.getElementById('comment-area');
@@ -368,6 +453,40 @@
             function handleChange() {
                 alert('Changed')
             }
+
+            document.querySelectorAll('#export-button').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const url = this.href;
+
+                    Swal.fire({
+                        title: '¿Exportar historial?',
+                        text: 'Se generará un archivo Excel con todo el historial de esta auditoría',
+                        icon: 'question',
+                        showCancelButton: true,
+                        confirmButtonText: 'Exportar',
+                        cancelButtonText: 'Cancelar'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            const icon = button.querySelector('.export-icon');
+                            const originalIcon = icon.getAttribute('icon');
+
+                            icon.setAttribute('icon', 'eos-icons:loading');
+                            icon.classList.add('animate-spin');
+                            button.classList.add('opacity-75', 'cursor-not-allowed');
+
+                            window.location.href = url;
+
+                            // Fallback en caso de que la descarga no se inicie
+                            setTimeout(() => {
+                                icon.setAttribute('icon', originalIcon);
+                                icon.classList.remove('animate-spin');
+                                button.classList.remove('opacity-75', 'cursor-not-allowed');
+                            }, 5000);
+                        }
+                    });
+                });
+            });
         </script>
         <script type="module">
             // Progress bar
@@ -393,6 +512,17 @@
                     }
                 })
             }
+
+            @push('scripts')
+                <script>
+                    function toggleComments(docId) {
+                        const el = document.getElementById('comments-' + docId);
+                        if (!el) return;
+                        el.classList.toggle('hidden');
+                    }
+                </script>
+                @endpush
+
 
             function initTooltip() {
                 if (window.innerWidth > 768) {
