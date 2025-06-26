@@ -130,6 +130,8 @@
                                             </div>
                                         </div>
 
+
+
                                         <div class="flex items-center space-x-3">
                                             @php $key = $doc->status->key; @endphp
 
@@ -231,6 +233,56 @@
                                                     </button>
                                                 </form>
                                             @endcan
+
+                                            {{-- NUEVO: Botón de Comentarios dentro del mismo <li> --}}
+                                            <button type="button"
+                                                class="ml-2 flex items-center text-sm text-gray-600 hover:text-blue-500"
+                                                onclick="toggleComments({{ $doc->id }})">
+                                                <iconify-icon icon="heroicons-outline:chat-alt-2"
+                                                    class="mr-1"></iconify-icon>
+                                                ({{ $doc->comments()->whereNull('comment_id')->count() }})
+                                            </button>
+
+
+                                        </div>
+
+                                        {{-- PANEL OCULTO de comentarios, también DENTRO del mismo <li> --}}
+                                        <div id="comments-{{ $doc->id }}"
+                                            class="hidden bg-gray-50 dark:bg-slate-800 p-4 mt-2 rounded">
+                                            @forelse($doc->comments()->whereNull('comment_id')->latest()->get() as $comment)
+                                                <div class="mb-3 p-2 bg-white dark:bg-slate-700 rounded">
+                                                    <div class="flex items-center space-x-2">
+                                                        <img src="{{ $comment->user->avatar ?: Avatar::create($comment->user->name)->toBase64() }}"
+                                                            class="h-6 w-6 rounded-full" alt="">
+                                                        <span class="font-medium">{{ $comment->user->name }}</span>
+                                                        <small
+                                                            class="text-xs text-gray-500">{{ $comment->created_at }}</small>
+                                                    </div>
+                                                    <p class="mt-2 text-sm text-gray-700 dark:text-white">
+                                                        {{ $comment->comment }}
+                                                    </p>
+                                                </div>
+                                            @empty
+                                                <p class="text-sm italic text-gray-500">
+                                                    No hay comentarios en este documento.
+                                                </p>
+                                            @endforelse
+
+                                            @can('createComment', $qualityControl)
+                                                <form action="{{ route('comments.store') }}" method="POST"
+                                                    class="mt-3 flex gap-2">
+                                                    @csrf
+                                                    <input type="hidden" name="quality_control_id"
+                                                        value="{{ $qualityControl->id }}">
+                                                    <input type="hidden" name="fase_id" value="{{ $fase->id }}">
+                                                    <input type="hidden" name="document_id"
+                                                        value="{{ $doc->id }}">
+                                                    <input type="text" name="comment"
+                                                        placeholder="Escribe tu comentario..."
+                                                        class="flex-1 border rounded px-2 py-1 dark:bg-slate-700" required>
+                                                    <button type="submit" class="btn btn-sm btn-primary">Enviar</button>
+                                                </form>
+                                            @endcan
                                         </div>
                                     </li>
                                 @endforeach
@@ -252,6 +304,8 @@
             @endforeach
         </div>
 
+
+
         {{-- ===================================================================
             2) Pestañas: Estado / Comentarios / Actividad
             =================================================================== --}}
@@ -262,20 +316,28 @@
                     class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-blue-500 text-blue-600 dark:text-white">
                     Estado
                 </button>
+                @php
+                    // Si $comments viene eager-loaded, es una colección
+                    $generalCount =
+                        $comments instanceof \Illuminate\Support\Collection
+                            ? $comments->whereNull('document_id')->count()
+                            : $comments->whereNull('document_id')->count();
+                @endphp
                 <button data-tab="comments"
                     class="tab-button whitespace-nowrap px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-white dark:hover:text-white">
-                    Comentarios ({{ $comments->count() }})
+
+                    Comentarios ({{ $generalCount }})
                 </button>
                 <button data-tab="activity"
                     class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-white dark:hover:text-white">
                     Actividad
                 </button>
-                
+
                 {{-- Botón de exportación responsive --}}
                 <div class="mr-1">
-                    <a  id="export-button" href="{{ route('quality-controls.export-history', $qualityControl) }}" 
-                       id="export-button"
-                       class="flex items-center px-3 py-1.5 text-sm rounded-md bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 transition-colors">
+                    <a id="export-button" href="{{ route('quality-controls.export-history', $qualityControl) }}"
+                        id="export-button"
+                        class="flex items-center px-3 py-1.5 text-sm rounded-md bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 transition-colors">
                         <iconify-icon icon="mdi:file-excel" class="mr-1.5 text-lg export-icon"></iconify-icon>
                         <span class="export-text">Exportar</span>
                     </a>
@@ -401,16 +463,21 @@
                 {{-- COMENTARIOS --}}
                 <div id="panel-comments" class="hidden text-gray-600 dark:text-white h-full flex flex-col">
 
-
+                    @php
+    // Obtenemos sólo los comentarios sin document_id
+    $generalComments = $comments instanceof \Illuminate\Support\Collection
+        ? $comments->whereNull('document_id')
+        : $comments->whereNull('document_id')->get();
+@endphp
 
                     {{-- 2) Lista de comentarios existentes --}}
                     <div class="flex-1 overflow-y-auto space-y-4 pr-2">
-                        @if ($comments->isEmpty())
+                        @if ($generalComments->isEmpty())
                             <p class="text-sm italic text-center">
                                 {{ __('No hay comentarios para esta auditoría.') }}
                             </p>
                         @else
-                            @foreach ($comments as $comment)
+                            @foreach ($generalComments as $comment)
                                 <div class="border-b border-gray-200 dark:border-gray-700 pb-3">
                                     <div class="flex items-center space-x-2">
                                         <img src="{{ $comment->user->avatar ?:
@@ -527,48 +594,48 @@
             let allCollapsed = false;
 
             // Exportación con confirmación
-document.getElementById('export-button')?.addEventListener('click', function(e) {
-    e.preventDefault();
-    const url = this.href;
-    const button = this;
-    const icon = button.querySelector('.export-icon');
-    const text = button.querySelector('.export-text');
-    const originalIcon = icon.getAttribute('icon');
-    const originalText = text.textContent;
-    
-    Swal.fire({
-        title: '¿Exportar historial?',
-        text: 'Se generará un archivo Excel con todo el historial de actividades',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Exportar',
-        cancelButtonText: 'Cancelar',
-        customClass: {
-            confirmButton: 'bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded',
-            cancelButton: 'bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded ml-2'
-        },
-        buttonsStyling: false
-    }).then((result) => {
-        if (result.isConfirmed) {
-            // Cambiar a estado de carga
-            icon.setAttribute('icon', 'eos-icons:loading');
-            icon.classList.add('animate-spin');
-            text.textContent = 'Generando...';
-            button.classList.add('opacity-75', 'cursor-not-allowed');
-            
-            // Redirigir para descargar
-            window.location.href = url;
-            
-            // Fallback en caso de que la descarga no se inicie
-            setTimeout(() => {
-                icon.setAttribute('icon', originalIcon);
-                icon.classList.remove('animate-spin');
-                text.textContent = originalText;
-                button.classList.remove('opacity-75', 'cursor-not-allowed');
-            }, 5000);
-        }
-    });
-});
+            document.getElementById('export-button')?.addEventListener('click', function(e) {
+                e.preventDefault();
+                const url = this.href;
+                const button = this;
+                const icon = button.querySelector('.export-icon');
+                const text = button.querySelector('.export-text');
+                const originalIcon = icon.getAttribute('icon');
+                const originalText = text.textContent;
+
+                Swal.fire({
+                    title: '¿Exportar historial?',
+                    text: 'Se generará un archivo Excel con todo el historial de actividades',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonText: 'Exportar',
+                    cancelButtonText: 'Cancelar',
+                    customClass: {
+                        confirmButton: 'bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded',
+                        cancelButton: 'bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 rounded ml-2'
+                    },
+                    buttonsStyling: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // Cambiar a estado de carga
+                        icon.setAttribute('icon', 'eos-icons:loading');
+                        icon.classList.add('animate-spin');
+                        text.textContent = 'Generando...';
+                        button.classList.add('opacity-75', 'cursor-not-allowed');
+
+                        // Redirigir para descargar
+                        window.location.href = url;
+
+                        // Fallback en caso de que la descarga no se inicie
+                        setTimeout(() => {
+                            icon.setAttribute('icon', originalIcon);
+                            icon.classList.remove('animate-spin');
+                            text.textContent = originalText;
+                            button.classList.remove('opacity-75', 'cursor-not-allowed');
+                        }, 5000);
+                    }
+                });
+            });
 
             // Alterna entre colapsar todas o expandir todas las fases
             function toggleCollapseAllFases() {
@@ -641,6 +708,11 @@ document.getElementById('export-button')?.addEventListener('click', function(e) 
                     }
                 });
             }
+
+            function toggleComments(docId) {
+                document.getElementById('comments-' + docId)?.classList.toggle('hidden');
+            }
+
 
             // Lógica de tabs (estado / comentarios / actividad)
             document.querySelectorAll('.tab-button').forEach(btn => {
