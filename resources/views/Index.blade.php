@@ -1,4 +1,26 @@
 <x-app-layout>
+
+    @if(session('toast'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            Swal.fire({
+                icon: '{{ session('toast.type') }}',
+                title: '{{ session('toast.title') }}',
+                text: '{{ session('toast.message') }}',
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+        });
+    </script>
+@endif
+
     <div class="space-y-8">
         <div class="items-center justify-between mb-6">
             <x-breadcrumb :breadcrumb-items="$breadcrumbItems" :page-title="''" />

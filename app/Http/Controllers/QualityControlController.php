@@ -345,6 +345,7 @@ $assignedConsultantIds = $qualityControl->users()
     public function getDetails(QualityControl $qualityControl, Request $request)
     {
         Gate::authorize('getDetails', $qualityControl);
+
         $breadcrumbsItems = [
             [
                 'name' => 'Detalles',
@@ -352,21 +353,39 @@ $assignedConsultantIds = $qualityControl->users()
                 'active' => true
             ]
         ];
-        $faseId = $request->get('fase');
-        $fase = $qualityControl->fases()->with('status', 'documents.status')->where(function ($query) use ($faseId) {
-            if ($faseId) {
-                $query->where('id', $faseId);
-            } else {
-                $query->whereHas('documents', function ($subquery) {
+
+        // Verificar primero si no hay fases configuradas
+        if ($qualityControl->fases()->count() === 0) {
+            return redirect()->back()
+                ->with('toast', [
+                    'type' => 'info',
+                    'title' => 'Auditoría en configuración',
+                    'message' => 'Esta auditoría está vacía. Por favor espere a que se configuren los documentos a subir.'
+                ]);
+        }
+
+        // Obtener fase con validación
+        $fase = $qualityControl->fases()
+            ->with('status', 'documents.status')
+            ->when($request->get('fase'), function ($query, $faseId) {
+                return $query->where('id', $faseId);
+            }, function ($query) {
+                return $query->whereHas('documents', function ($subquery) {
                     $status = Status::where('key', 'waiting_review')->first();
-                    $subquery->where('status_id', $status->id);
+                    $subquery->where('status_id', $status?->id);
                 });
-            }
-        })->first();
+            })
+            ->first();
 
-        $fase = $fase ?? $qualityControl->fases()->first();
-        $nextFase = $qualityControl->fases()->where('id', '>', $fase->id)->first() ?? $qualityControl->fases()->first();
+        // Si hay fases pero no cumplen el filtro, usa la primera
+        if (!$fase) {
+            $fase = $qualityControl->fases()->first();
+        }
 
+        // Obtener siguiente fase
+        $nextFase = $qualityControl->fases()
+            ->where('id', '>', $fase->id)
+            ->first() ?? $qualityControl->fases()->first();
 
         return view('qualityControls.work_flow', [
             'breadcrumbItems' => $breadcrumbsItems,
@@ -376,7 +395,6 @@ $assignedConsultantIds = $qualityControl->users()
             'nextFase' => $nextFase
         ]);
     }
-
     /**
      * Guarda un comentario nuevo para este QualityControl.
      */
