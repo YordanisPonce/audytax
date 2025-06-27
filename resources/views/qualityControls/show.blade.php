@@ -234,57 +234,86 @@
                                                 </form>
                                             @endcan
 
-                                            {{-- NUEVO: Botón de Comentarios dentro del mismo <li> --}}
                                             <button type="button"
-                                                class="ml-2 flex items-center text-sm text-gray-600 hover:text-blue-500"
-                                                onclick="toggleComments({{ $doc->id }})">
+                                                class="ml-2 flex items-center text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-full px-3 py-1 transition-colors shadow-sm"
+                                                onclick="toggleComments({{ $doc->id }})"
+                                                title="Ver comentarios">
                                                 <iconify-icon icon="heroicons-outline:chat-alt-2"
                                                     class="mr-1"></iconify-icon>
-                                                ({{ $doc->comments()->whereNull('comment_id')->count() }})
+                                                <span
+                                                    class="font-semibold">{{ $doc->comments()->whereNull('comment_id')->count() }}</span>
                                             </button>
 
 
+
                                         </div>
 
-                                        {{-- PANEL OCULTO de comentarios, también DENTRO del mismo <li> --}}
-                                        <div id="comments-{{ $doc->id }}"
-                                            class="hidden bg-gray-50 dark:bg-slate-800 p-4 mt-2 rounded">
+                                    </li>
+                                    
+                                    {{-- PANEL OCULTO de comentarios, también DENTRO del mismo <li> --}}
+                                    {{-- Dentro del <li> de cada documento --}}
+                                    <div id="comments-{{ $doc->id }}"
+                                        class=" hidden w-full mt-3 bg-white dark:bg-slate-800 rounded-xl border border-blue-100 dark:border-slate-700 p-4 shadow-lg transition-all duration-300">
+                                        <h4
+                                            class="font-semibold text-blue-700 dark:text-blue-200 mb-3 flex items-center gap-2">
+                                            <iconify-icon icon="heroicons-outline:chat-alt-2"
+                                                class="text-xl"></iconify-icon>
+                                            Comentarios ({{ $doc->comments()->whereNull('comment_id')->count() }})
+                                        </h4>
+                                        <div class="space-y-4 max-h-60 overflow-y-auto pr-2">
                                             @forelse($doc->comments()->whereNull('comment_id')->latest()->get() as $comment)
-                                                <div class="mb-3 p-2 bg-white dark:bg-slate-700 rounded">
-                                                    <div class="flex items-center space-x-2">
-                                                        <img src="{{ $comment->user->avatar ?: Avatar::create($comment->user->name)->toBase64() }}"
-                                                            class="h-6 w-6 rounded-full" alt="">
-                                                        <span class="font-medium">{{ $comment->user->name }}</span>
-                                                        <small
-                                                            class="text-xs text-gray-500">{{ $comment->created_at }}</small>
+                                                <div class="flex gap-3 items-start">
+                                                    <img src="{{ $comment->user->avatar ?: Avatar::create($comment->user->name)->toBase64() }}"
+                                                        class="h-10 w-10 rounded-full border-2 border-blue-200"
+                                                        alt="{{ $comment->user->name }}">
+
+                                                    <div class="flex-1">
+                                                        <div
+                                                            class="bg-blue-50 dark:bg-slate-700 rounded-lg p-4 shadow">
+                                                            <div class="flex justify-between items-center">
+                                                                <span
+                                                                    class="font-bold text-blue-800 dark:text-blue-200">{{ $comment->user->name }}</span>
+                                                                <span class="text-xs text-gray-500 dark:text-gray-400">
+                                                                    {{ $comment->created_at }}
+                                                                </span>
+
+
+                                                            </div>
+                                                            <p
+                                                                class="mt-2 text-gray-700 dark:text-gray-200 leading-relaxed">
+                                                                {{ $comment->comment }}</p>
+                                                        </div>
+
+
                                                     </div>
-                                                    <p class="mt-2 text-sm text-gray-700 dark:text-white">
-                                                        {{ $comment->comment }}
-                                                    </p>
                                                 </div>
                                             @empty
-                                                <p class="text-sm italic text-gray-500">
+                                                <div class="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
                                                     No hay comentarios en este documento.
-                                                </p>
+                                                </div>
                                             @endforelse
-
-                                            @can('createComment', $qualityControl)
-                                                <form action="{{ route('comments.store') }}" method="POST"
-                                                    class="mt-3 flex gap-2">
-                                                    @csrf
-                                                    <input type="hidden" name="quality_control_id"
-                                                        value="{{ $qualityControl->id }}">
-                                                    <input type="hidden" name="fase_id" value="{{ $fase->id }}">
-                                                    <input type="hidden" name="document_id"
-                                                        value="{{ $doc->id }}">
-                                                    <input type="text" name="comment"
-                                                        placeholder="Escribe tu comentario..."
-                                                        class="flex-1 border rounded px-2 py-1 dark:bg-slate-700" required>
-                                                    <button type="submit" class="btn btn-sm btn-primary">Enviar</button>
-                                                </form>
-                                            @endcan
                                         </div>
-                                    </li>
+                                        @can('createComment', $qualityControl)
+                                            <form action="{{ route('comments.store') }}" method="POST"
+                                                class="mt-4 flex gap-2">
+                                                @csrf
+                                                <input type="hidden" name="quality_control_id"
+                                                    value="{{ $qualityControl->id }}">
+                                                <input type="hidden" name="fase_id" value="{{ $fase->id }}">
+                                                <input type="hidden" name="document_id" value="{{ $doc->id }}">
+                                                <input type="text" name="comment" required
+                                                    class="flex-1 rounded-full border border-blue-200 px-4 py-2 shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                                    placeholder="Escribe un comentario...">
+                                                <button type="submit"
+                                                    class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 flex items-center gap-1 transition">
+                                                    <iconify-icon icon="heroicons-outline:paper-airplane"
+                                                        class="text-lg"></iconify-icon>
+                                                    Enviar
+                                                </button>
+                                            </form>
+                                        @endcan
+
+                                    </div>
                                 @endforeach
                             </ul>
 
@@ -464,11 +493,12 @@
                 <div id="panel-comments" class="hidden text-gray-600 dark:text-white h-full flex flex-col">
 
                     @php
-    // Obtenemos sólo los comentarios sin document_id
-    $generalComments = $comments instanceof \Illuminate\Support\Collection
-        ? $comments->whereNull('document_id')
-        : $comments->whereNull('document_id')->get();
-@endphp
+                        // Obtenemos sólo los comentarios sin document_id
+                        $generalComments =
+                            $comments instanceof \Illuminate\Support\Collection
+                                ? $comments->whereNull('document_id')
+                                : $comments->whereNull('document_id')->get();
+                    @endphp
 
                     {{-- 2) Lista de comentarios existentes --}}
                     <div class="flex-1 overflow-y-auto space-y-4 pr-2">
@@ -710,7 +740,32 @@
             }
 
             function toggleComments(docId) {
-                document.getElementById('comments-' + docId)?.classList.toggle('hidden');
+                const commentsPanel = document.getElementById('comments-' + docId);
+                commentsPanel.classList.toggle('hidden');
+
+                // Animación suave
+                if (!commentsPanel.classList.contains('hidden')) {
+                    commentsPanel.style.opacity = '0';
+                    commentsPanel.style.height = '0';
+                    commentsPanel.classList.remove('hidden');
+
+                    setTimeout(() => {
+                        commentsPanel.style.transition = 'opacity 0.3s ease, height 0.3s ease';
+                        commentsPanel.style.opacity = '1';
+                        commentsPanel.style.height = 'auto';
+                    }, 10);
+                } else {
+                    commentsPanel.style.transition = 'opacity 0.3s ease, height 0.3s ease';
+                    commentsPanel.style.opacity = '0';
+                    commentsPanel.style.height = '0';
+
+                    setTimeout(() => {
+                        commentsPanel.classList.add('hidden');
+                        commentsPanel.style.removeProperty('transition');
+                        commentsPanel.style.removeProperty('opacity');
+                        commentsPanel.style.removeProperty('height');
+                    }, 300);
+                }
             }
 
 
@@ -733,5 +788,36 @@
                 });
             });
         </script>
+    @endpush
+    @push('styles')
+        <style>
+            /* Estilo para la barra de desplazamiento en los comentarios */
+            .overflow-y-auto::-webkit-scrollbar {
+                width: 6px;
+            }
+
+            .overflow-y-auto::-webkit-scrollbar-track {
+                background: #f1f1f1;
+                border-radius: 10px;
+            }
+
+            .overflow-y-auto::-webkit-scrollbar-thumb {
+                background: #c1c1c1;
+                border-radius: 10px;
+            }
+
+            .dark .overflow-y-auto::-webkit-scrollbar-track {
+                background: #334155;
+            }
+
+            .dark .overflow-y-auto::-webkit-scrollbar-thumb {
+                background: #64748b;
+            }
+
+            /* Transición suave para el panel de comentarios */
+            [id^="comments-"] {
+                transition: opacity 0.3s ease, height 0.3s ease;
+            }
+        </style>
     @endpush
 </x-app-layout>

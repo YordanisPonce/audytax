@@ -142,65 +142,98 @@
 
 
                                                 @foreach ($fase->documents as $item)
-    {{-- 1) Formulario de subida de este documento (si aplica) --}}
-    <form enctype="multipart/form-data"
-          method="POST"
-          action="{{ route('documents.save-files', $fase) }}"
-          class="mb-4">
-        @csrf
-        <x-file-picker
-            :document="$item"
-            :fileId="'input-file-' . $loop->iteration"
-            :fileName="'files[' . $item->id . ']'"
-        />
-        {{-- @if($fase->isOpen() || $fase->isRejected())
-            @hasrole('client')
-                <button type="submit" class="btn btn-primary btn-sm mt-2">Subir</button>
-            @endhasrole
-        @endif --}}
-    </form>
+                                                    {{-- 1) Formulario de subida de este documento (si aplica) --}}
+                                                    <form enctype="multipart/form-data" method="POST"
+                                                        action="{{ route('documents.save-files', $fase) }}" class="mb-4">
+                                                        @csrf
+                                                        <x-file-picker :document="$item" :fileId="'input-file-' . $loop->iteration"
+                                                            :fileName="'files[' . $item->id . ']'" />
+                                                        {{-- @if ($fase->isOpen() || $fase->isRejected())
+                                                                    @hasrole('client')
+                                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">Subir</button>
+                                                                    @endhasrole
+                                                                @endif --}}
+                                                    </form>
 
-    {{-- 2) Botón que despliega/oculta comentarios --}}
-    <button
-        type="button"
-        class="flex items-center text-sm text-gray-600 hover:text-blue-500 mb-2"
-        onclick="toggleComments({{ $item->id }})"
-    >
-        <iconify-icon icon="heroicons-outline:chat-alt-2" class="mr-1"></iconify-icon>
-        Comentarios ({{ $item->comments()->whereNull('comment_id')->count() }})
-    </button>
+                                                    {{-- 2) Botón que despliega/oculta comentarios --}}
+                                                    <button type="button"
+                                                        class="ml-2 mt-2 flex items-center text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-full px-3 py-1 transition-colors shadow-sm"
+                                                        onclick="toggleComments({{ $item->id }})"
+                                                        title="Ver comentarios">
+                                                        <iconify-icon icon="heroicons-outline:chat-alt-2"
+                                                            class="mr-1"></iconify-icon>
+                                                        <span
+                                                            class="font-semibold">{{ $item->comments()->whereNull('comment_id')->count() }}</span>
+                                                    </button>
 
-    {{-- 3) Bloque de comentarios oculto por defecto --}}
-    <div id="comments-{{ $item->id }}" class="hidden ml-4 mb-6">
-        {{-- Listado de comentarios --}}
-        @foreach($item->comments()->whereNull('comment_id')->latest()->get() as $comment)
-            <div class="p-2 bg-gray-100 rounded mb-2">
-                <strong>{{ $comment->user->name }}:</strong>
-                {{ $comment->comment }}
-                <small class="text-xs text-gray-500">{{ $comment->created_at }}</small>
-            </div>
-        @endforeach
+                                                    {{-- Panel oculto de comentarios --}}
+                                                    <div id="comments-{{ $item->id }}"
+                                                        class="hidden w-full mt-3 bg-white dark:bg-slate-800 rounded-xl border border-blue-100 dark:border-slate-700 p-4 shadow-lg transition-all duration-300">
+                                                        {{-- Cabecera --}}
+                                                        <h4
+                                                            class="flex items-center gap-2 font-semibold text-blue-700 dark:text-blue-200 mb-3">
+                                                            <iconify-icon icon="heroicons-outline:chat-alt-2"
+                                                                class="text-xl"></iconify-icon>
+                                                            Comentarios
+                                                            ({{ $item->comments()->whereNull('comment_id')->count() }})
+                                                        </h4>
 
-        {{-- Formulario de nuevo comentario --}}
-        @if($fase->isOpen() || $fase->isRejected())
-            <form action="{{ route('comments.store') }}"
-                  method="POST"
-                  class="flex gap-2 mt-2">
-                @csrf
-                <input type="hidden" name="quality_control_id" value="{{ $qualityControl->id }}">
-                <input type="hidden" name="fase_id"            value="{{ $fase->id }}">
-                <input type="hidden" name="document_id"       value="{{ $item->id }}">
-                <input type="text"
-                       name="comment"
-                       placeholder="Escribe tu comentario..."
-                       class="flex-1 border rounded px-2 py-1"
-                       required
-                >
-                <button type="submit" class="btn btn-sm btn-primary">Enviar</button>
-            </form>
-        @endif
-    </div>
-@endforeach
+                                                        {{-- Lista de comentarios --}}
+                                                        <div class="space-y-4 max-h-60 overflow-y-auto pr-2">
+                                                            @forelse($item->comments()->whereNull('comment_id')->latest()->get() as $comment)
+                                                                <div class="flex gap-3 items-start">
+                                                                    <img src="{{ $comment->user->avatar ?: Avatar::create($comment->user->name)->toBase64() }}"
+                                                                        class="h-10 w-10 rounded-full border-2 border-blue-200"
+                                                                        alt="{{ $comment->user->name }}">
+                                                                    <div
+                                                                        class="flex-1 bg-blue-50 dark:bg-slate-700 rounded-lg p-4 shadow">
+                                                                        <div class="flex justify-between items-center">
+                                                                            <span
+                                                                                class="font-bold text-blue-800 dark:text-blue-200">
+                                                                                {{ $comment->user->name }}
+                                                                            </span>
+                                                                            <span
+                                                                                class="text-xs text-gray-500 dark:text-gray-400">
+                                                                                {{ $comment->created_at }}
+                                                                            </span>
+                                                                        </div>
+                                                                        <p class="mt-2 text-gray-700 dark:text-gray-200">
+                                                                            {{ $comment->comment }}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+                                                            @empty
+                                                                <div
+                                                                    class="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+                                                                    No hay comentarios en este documento.
+                                                                </div>
+                                                            @endforelse
+                                                        </div>
+
+                                                        {{-- Formulario de nuevo comentario --}}
+                                                        {{-- @can('createComment', $qualityControl) --}}
+                                                        <form action="{{ route('comments.store') }}" method="POST"
+                                                            class="mt-4 flex gap-2">
+                                                            @csrf
+                                                            <input type="hidden" name="quality_control_id"
+                                                                value="{{ $qualityControl->id }}">
+                                                            <input type="hidden" name="fase_id"
+                                                                value="{{ $fase->id }}">
+                                                            <input type="hidden" name="document_id"
+                                                                value="{{ $item->id }}">
+                                                            <input type="text" name="comment" required
+                                                                class="flex-1 rounded-full border border-blue-200 px-4 py-2 shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                                                placeholder="Escribe un comentario...">
+                                                            <button type="submit"
+                                                                class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 flex items-center gap-1">
+                                                                <iconify-icon icon="heroicons-outline:paper-airplane"
+                                                                    class="text-lg"></iconify-icon>
+                                                                Enviar
+                                                            </button>
+                                                        </form>
+                                                        {{-- @endcan --}}
+                                                    </div>
+                                                @endforeach
 
                                                 @if ($fase->isOpen() || $fase->isRejected())
                                                     @hasrole('client')
@@ -219,15 +252,15 @@
                                             <div @class(['flex flex-col h-full comment-panel reltive'])>
                                                 <div class="grow overflow-scroll  h-full" id="comment-area">
                                                     @php
-                                                    $generalComments = $qualityControl
-                                                        ->comments()
-                                                        ->whereNull('document_id')
-                                                        ->latest()
-                                                        ->get();
-                                                @endphp
-                                                
-                                                @forelse ($generalComments as $item)
-                                                    <x-comment :comment="$item" />
+                                                        $generalComments = $qualityControl
+                                                            ->comments()
+                                                            ->whereNull('document_id')
+                                                            ->latest()
+                                                            ->get();
+                                                    @endphp
+
+                                                    @forelse ($generalComments as $item)
+                                                        <x-comment :comment="$item" />
                                                     @empty
                                                         <div class="h-full flex items-center justify-center">
                                                             <p class="text-xl m-auto text-center">
@@ -430,7 +463,14 @@
                 }, 200);
             }
 
-            
+
+            function toggleComments(docId) {
+                document.getElementById('comments-' + docId)?.classList.toggle('hidden');
+            }
+
+
+
+
 
 
             window.onload = () => {
@@ -501,11 +541,11 @@
                 event.preventDefault();
                 let form = document.getElementById(formId);
                 Swal.fire({
-                    title: '@lang('Are you sure ? ')',
+                    title: 'undefined',
                     icon: 'question',
                     showDenyButton: true,
-                    confirmButtonText: '@lang('Delete ')',
-                    denyButtonText: '@lang('Cancel ')',
+                    confirmButtonText: 'undefined',
+                    denyButtonText: 'undefined',
                 }).then((result) => {
                     if (result.isConfirmed) {
                         form.submit();
@@ -514,56 +554,16 @@
             }
 
             @push('scripts')
-                <script>
+                <
+                script >
                     function toggleComments(docId) {
                         const el = document.getElementById('comments-' + docId);
                         if (!el) return;
                         el.classList.toggle('hidden');
                     }
-                </script>
-                @endpush
-
-
-            function initTooltip() {
-                if (window.innerWidth > 768) {
-                    // Tooltip and Popover
-                    tippy(".onBottom", {
-                        content: "Sin descripci&oacute;n disponible",
-                        placement: "bottom",
-                        allowHTML: true,
-                        maxWidth: 200,
-                        // Estilos CSS personalizados
-                        appendTo: document.body,
-                        popperOptions: {
-                            modifiers: [{
-                                    name: 'offset',
-                                    options: {
-                                        offset: [0, 10],
-                                    },
-                                },
-                                {
-                                    name: 'preventOverflow',
-                                    options: {
-                                        padding: 10,
-                                    },
-                                },
-                                {
-                                    name: 'computeStyles',
-                                    options: {
-                                        gpuAcceleration: false,
-                                    },
-                                },
-                            ],
-                        },
-                        onCreate(instance) {
-                            // Aplica estilos adicionales al contenido del tooltip
-                            const tooltipContent = instance.popper.querySelector('.tippy-content');
-                            tooltipContent.style.whiteSpace = 'pre-wrap';
-                            tooltipContent.style.wordWrap = 'break-word';
-                        },
-                    });
-                }
-            }
         </script>
+
     @endpush
+    </script>
+@endpush
 </x-app-layout>
