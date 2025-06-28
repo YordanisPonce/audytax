@@ -176,3 +176,9 @@ body.dark .row-fully-accepted {
     animation: spin 1s linear infinite;
 }
 
+@media (min-width: 1280px) {
+    [dir=ltr] .app-header {
+        margin-left: 0 !important;
+    }
+}
+

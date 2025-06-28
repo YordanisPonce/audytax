@@ -7,7 +7,7 @@
 @endphp
 
 <div class="z-[9] sticky top-0" id="app_header">
-    <div class="app-header z-[999] bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-700 !ml-0">
+    <div class="app-header z-[999] bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-700 !ml-0  margin-0">
         <div class="flex px-20 justify-between items-center h-full">
 
             {{-- IZQUIERDA: logo y botón hamburguesa en móvil --}}
