@@ -1,6 +1,6 @@
 @props(['message', 'type',  'status'])
 
-<div class="alert alert-{{isset($status) ? $status : 'success'}} light-mode" {{ $attributes->merge(['class' => 'mb-3 alert ' . $type]) }}>
+<div class="alert mx-20 alert-{{isset($status) ? $status : 'success'}} light-mode" {{ $attributes->merge(['class' => 'mb-3 alert ' . $type]) }}>
     <div class="flex items-center space-x-3 rtl:space-x-reverse">
         <iconify-icon class="text-2xl flex-0" icon="system-uicons:target"></iconify-icon>
         <p class="flex-1 font-Inter">{{ $message }}</p>
