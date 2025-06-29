@@ -131,28 +131,29 @@
                                         </li>
                                     </ul>
                                     <div class="tab-content w-full" id="tabs-tabContent">
-                                        <div @class([
-                                            'tab-pane w-full',
-                                            ' fade show active ' => !session('comments'),
-                                        ])id="tabs-home-withIcon" role="tabpanel"
-                                            aria-labelledby="tabs-home-withIcon-tab">
-                                            <form class="grow truncate" enctype="multipart/form-data" method="POST"
-                                                action="{{ route('documents.save-files', $fase) }}">
-                                                @csrf
-
-
+                                        <div class="tab-content w-full" id="tabs-tabContent">
+                                            <div @class([
+                                                'tab-pane w-full',
+                                                ' fade show active ' => !session('comments'),
+                                            ]) id="tabs-home-withIcon" role="tabpanel"
+                                                aria-labelledby="tabs-home-withIcon-tab">
                                                 @foreach ($fase->documents as $item)
-                                                    {{-- 1) Formulario de subida de este documento (si aplica) --}}
+                                                    {{-- Formulario de subida para cada documento --}}
                                                     <form enctype="multipart/form-data" method="POST"
                                                         action="{{ route('documents.save-files', $fase) }}" class="mb-4">
                                                         @csrf
                                                         <x-file-picker :document="$item" :fileId="'input-file-' . $loop->iteration"
                                                             :fileName="'files[' . $item->id . ']'" />
-                                                        {{-- @if ($fase->isOpen() || $fase->isRejected())
-                                                                    @hasrole('client')
-                                                                        <button type="submit" class="btn btn-primary btn-sm mt-2">Subir</button>
-                                                                    @endhasrole
-                                                                @endif --}}
+
+                                                            @if($item->isOpen() || $item->isRejected())
+                                                            @hasrole('client')
+                                                            <button type="submit"
+                                                            id="upload-btn-{{ $item->id }}"
+                                                            class="btn btn-primary btn-sm mt-2">
+                                                        Subir
+                                                    </button>
+                                                            @endhasrole
+                                                        @endif
                                                     </form>
 
                                                     {{-- 2) Botón que despliega/oculta comentarios --}}
@@ -234,14 +235,14 @@
                                                         {{-- @endcan --}}
                                                     </div>
                                                 @endforeach
-
+                                                {{-- 
                                                 @if ($fase->isOpen() || $fase->isRejected())
                                                     @hasrole('client')
                                                         <button type="submit"
                                                             class="btn btn-primary btn-sm mt-3">Subir</button>
                                                     @endhasrole
-                                                @endif
-                                            </form>
+                                                @endif --}}
+                                            </div>
                                         </div>
                                         <div @class([
                                             'tab-pane fade',
