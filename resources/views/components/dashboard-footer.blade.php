@@ -1,7 +1,7 @@
 <!-- BEGIN: Footer For Desktop and tab -->
 <footer id="footer" class="max-md:hidden">
     <div
-        class="site-footer px-6 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 py-4 ltr:ml-[248px] rtl:mr-[248px]">
+        class="site-footer px-6 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-300 py-4 ml-0 rtl:ml-0 ">
         <div class="grid md:grid-cols-2 grid-cols-1 md:gap-5">
             <div class="text-center ltr:md:text-start rtl:md:text-right text-sm">
                &copy;
@@ -11,8 +11,8 @@
             </div>
             <div class="ltr:md:text-right rtl:md:text-end text-center text-sm">
                 {{ __('Powered by') }}
-                <a href="https://tkanalytics.es/" target="_blank" class="text-primary-500 font-semibold">
-                  TK Analytics
+                <a href="https://innet.es/" target="_blank" class="text-primary-500 font-semibold">
+                  INNET
                 </a>
             </div>
         </div>
@@ -55,13 +55,13 @@
             text-slate-900">
                 <iconify-icon icon="heroicons-outline:bell"></iconify-icon>
                 <span
-                    class="absolute right-[17px] lg:hrefp-0 -hrefp-2 h-4 w-4 bg-red-500 text-[8px] font-semibold flex flex-col items-center
+                    class="absolute right-[100px] lg:hrefp-0 -hrefp-2 h-4 w-4 bg-red-500 text-[8px] font-semibold flex flex-col items-center
               justify-center rounded-full text-white z-[99]">
                     2
                 </span>
             </span>
             <span class=" block text-[11px] text-slate-600 dark:text-slate-300">
-                {{ __('Notifications') }}
+                {{ __('Notificaciones') }}
             </span>
         </div>
     </a>

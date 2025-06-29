@@ -182,3 +182,11 @@ body.dark .row-fully-accepted {
     }
 }
 
+@media (min-width: 1280px) {
+
+    [dir="ltr"] .app-header,
+    [dir="ltr"] .content-wrapper,
+    [dir="ltr"] .site-footer {
+        margin-left: 0;
+    }
+}

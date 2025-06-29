@@ -172,11 +172,11 @@
                 event.preventDefault();
                 let form = document.getElementById(formId);
                 Swal.fire({
-                    title: '@lang('Are you sure?')',
+                    title: '@lang('¿Estás seguro de que deseas borrarla?')',
                     icon: 'question',
                     showDenyButton: true,
-                    confirmButtonText: '@lang('Delete ')',
-                    denyButtonText: '@lang('Cancel ')',
+                    confirmButtonText: '@lang('Borrar')',
+                    denyButtonText: '@lang('Cancelar ')',
                 }).then((result) => {
                     if (result.isConfirmed) {
                         form.submit();

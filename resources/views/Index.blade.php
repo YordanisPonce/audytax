@@ -12,6 +12,10 @@
                 showConfirmButton: false,
                 timer: 5000,
                 timerProgressBar: true,
+                width: 'auto',
+                customClass: {
+                    container: 'custom-swal-container'
+                },
                 didOpen: (toast) => {
                     toast.addEventListener('mouseenter', Swal.stopTimer)
                     toast.addEventListener('mouseleave', Swal.resumeTimer)
@@ -19,6 +23,13 @@
             });
         });
     </script>
+    
+    <style>
+        .custom-swal-container {
+            margin-right: 5rem !important;
+            margin-left: 5rem !important;
+        }
+    </style>
 @endif
 
     <div class="space-y-8">

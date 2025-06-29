@@ -249,7 +249,7 @@
                                         </div>
 
                                     </li>
-                                    
+
                                     {{-- PANEL OCULTO de comentarios, también DENTRO del mismo <li> --}}
                                     {{-- Dentro del <li> de cada documento --}}
                                     <div id="comments-{{ $doc->id }}"
@@ -339,39 +339,32 @@
             2) Pestañas: Estado / Comentarios / Actividad
             =================================================================== --}}
         <div class="bg-white dark:bg-slate-800 rounded-md shadow-sm h-96 flex flex-col sticky top-[7rem]">
+            @php
+                $generalCount =
+                    $comments instanceof \Illuminate\Support\Collection
+                        ? $comments->whereNull('document_id')->count()
+                        : $comments->whereNull('document_id')->count();
+            @endphp
+
             {{-- Tabs --}}
-            <nav class="flex border-b dark:border-slate-700 items-center">
-                <button data-tab="status"
-                    class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-blue-500 text-blue-600 dark:text-white">
-                    Estado
-                </button>
-                @php
-                    // Si $comments viene eager-loaded, es una colección
-                    $generalCount =
-                        $comments instanceof \Illuminate\Support\Collection
-                            ? $comments->whereNull('document_id')->count()
-                            : $comments->whereNull('document_id')->count();
-                @endphp
-                <button data-tab="comments"
-                    class="tab-button whitespace-nowrap px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-white dark:hover:text-white">
-
-                    Comentarios ({{ $generalCount }})
-                </button>
-                <button data-tab="activity"
-                    class="tab-button px-4 py-2 -mb-px border-b-2 font-medium border-transparent text-gray-600 hover:text-gray-800 dark:text-white dark:hover:text-white">
-                    Actividad
-                </button>
-
-                {{-- Botón de exportación responsive --}}
-                <div class="mr-1">
-                    <a id="export-button" href="{{ route('quality-controls.export-history', $qualityControl) }}"
-                        id="export-button"
-                        class="flex items-center px-3 py-1.5 text-sm rounded-md bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 transition-colors">
-                        <iconify-icon icon="mdi:file-excel" class="mr-1.5 text-lg export-icon"></iconify-icon>
-                        <span class="export-text">Exportar</span>
-                    </a>
+            <nav class="flex flex-wrap justify-between items-center border-b dark:border-slate-700 px-2">
+                <!-- Grupo de pestañas -->
+                <div class="flex flex-wrap space-x-1">
+                    <button data-tab="status" class="tab-button px-4 py-2 …">Estado</button>
+                    <button data-tab="comments" class="tab-button px-4 py-2 …">
+                        Comentarios ({{ $generalCount }})
+                    </button>
+                    <button data-tab="activity" class="tab-button px-4 py-2 …">Actividad</button>
                 </div>
+
+                <!-- Botón de export -->
+                <a id="export-button" href="{{ route('quality-controls.export-history', $qualityControl) }}"
+                class="flex items-center px-3 py-1.5 text-sm rounded-md bg-green-50 text-green-700 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-300 dark:hover:bg-green-900/50 transition-colors">
+                    <iconify-icon icon="mdi:file-excel" class="mr-1.5 text-lg export-icon"></iconify-icon>
+                    <span class="export-text hidden sm:inline">Exportar</span>
+                </a>
             </nav>
+
 
             {{-- Panels --}}
             <div class="p-4 dark:text-white overflow-y-auto flex-1">
@@ -559,20 +552,54 @@
 
                     {{-- 1) Formulario de nuevo comentario (solo si @can('createComment', $qualityControl)) --}}
                     {{-- Formulario para que el Admin (o quien esté autorizado) deje un comentario en este QC --}}
-                    @can('createComment', $qualityControl)
-                        <form action="{{ route('qualityControls.comments.store', $qualityControl->id) }}" method="POST"
-                            class="mb-4">
-                            @csrf
-                            <textarea name="comment" rows="3" class="w-full border rounded px-2 py-1 dark:bg-slate-700"
-                                placeholder="Escribe aquí tu comentario..." required></textarea>
-                            <x-input-error :messages="$errors->get('comment')" class="mt-1 text-sm text-red-600" />
-
-                            <button type="submit"
-                                class="mt-2 inline-flex items-center px-4 py-2 bg-blue-600  text-white rounded hover:bg-blue-700">
-                                Enviar comentario
+                    
+                    <form class="" id="comment-form"
+                    action="{{ route('comments.store') }}" method="POST">
+                    @csrf
+                    <input type="hidden" name="fase_id" value="{{ $fase->id }}">
+                    <div class="hidden" id="comment-box-header">
+                        <div class="card-header flex gap-2 bg-opacity-50">
+                            <p class="w-full truncate" id="comment-preview"></p>
+                            <button class="mb-auto" type="button"
+                                onclick="handleCloseReplyPreview()">
+                                <iconify-icon class="nav-icon relative top-[2px] leading-3"
+                                    icon="material-symbols:close"></iconify-icon>
                             </button>
-                        </form>
-                    @endcan
+                        </div>
+                    </div>
+                    <div class="card-body p-5">
+                        <div class="flex items-center gap-2">
+                            <div class="flex gap-2">
+                                <div class="w-fit h-fit">
+                                    <div
+                                        class="lg:h-10 lg:w-10 h-7 w-7 rounded-full flex-1 bg-gray-500">
+                                        <img class="block w-full h-full object-cover rounded-full"
+                                            src="{{ auth()->user()->avatar ?:Avatar::create(auth()->user()->name)->setDimension(400)->setFontSize(240)->toBase64() }}"
+                                            alt="user" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div
+                                class="grow flex gap-3 border-2 dark:border-[.5px] dark:border-slate-400  rounded-md @error('comment')
+                            border-danger-500
+                            @enderror">
+                                <div class=" grow flex flex-col">
+                                    <input name="comment" placeholder="Agregar comentario"
+                                        required
+                                        class="text-slate-500 focus:outline-none pl-2 pt-2 dark:bg-transparent dark:text-white h-fit w-full" />
+
+                                </div>
+                                <button class="h-fit w-fit p-1">
+                                    <iconify-icon
+                                        class="nav-icon text-3xl relative top-[2px] leading-3"
+                                        icon="material-symbols:send"></iconify-icon>
+                                </button>
+                            </div>
+
+                        </div>
+                        <input type="hidden" name="comment_id" id="comment_id">
+                    </div>
+                </form>
                 </div>
 
                 {{-- ACTIVIDAD --}}
