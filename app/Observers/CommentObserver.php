@@ -5,6 +5,8 @@ namespace App\Observers;
 use App\Models\Comment;
 use App\Models\User;
 use App\Traits\Notify as NotifyTrait;  // tu trait
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 
 class CommentObserver
@@ -30,13 +32,20 @@ class CommentObserver
         // Este notify viene de tu NotifyTrait y grabará en histories
         $this->notify($message, $qc);
 
-        // 2) Luego, opcionalmente, dispara la notificación real a los usuarios
-        $qc->users->each(function (User $u) use ($qc) {
-            // ej: email, push, etc. (usa la clase Notification que prefieras)
-            $u->notify(new \App\Notifications\Notify(
-                "Hay un nuevo comentario en \"{$qc->name}\""
-            ));
-        });
+        // 2) Notificar por e-mail / push, protegiendo fallos
+        foreach ($qc->users as $user) {
+            try {
+                $user->notify(new \App\Notifications\Notify(
+                    "Hay un nuevo comentario en «{$qc->name}»"
+                ));
+            } catch (Throwable $e) {
+                Log::warning(
+                    "Error notificando comentario {$comment->id} "
+                        . "para usuario {$user->id}: " . $e->getMessage()
+                );
+                // opcional: seguir al siguiente usuario sin interrumpir
+            }
+        }
     }
 
 

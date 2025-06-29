@@ -112,7 +112,15 @@ class UserController extends Controller
                 'photo' => $this->upload($request->file('photo'), 'users')
             ]);
         $user->assignRole([$request->validated('role')]);
-        $user->notify(new RegisterNotify($request->all()));
+
+
+        try {
+            $user->notify(new RegisterNotify($request->all()));
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo enviar e-mail de registro al usuario ' . $user->id . ': ' . $e->getMessage());
+            // opcional: session()->flash('warning', 'El usuario se creó pero no se pudo enviar el e-mail de bienvenida.');
+        }
+        
         return redirect()->route('users.index')->with('message', 'Usuario creado satisfactoriamente');
     }
 

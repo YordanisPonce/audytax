@@ -148,9 +148,17 @@ class QualityControlController extends Controller
         $ids = array_merge($request->consultants ?: [], $request->clients ?: []);
         $qualityControl->users()->attach($ids);
         //
-        User::whereIn('id', $ids)->get()->each(function (User $item) {
-            $item->notify(new Notify('Te ha asignado un nuevo control de calidad'));
-        });
+        try {
+            // Intentamos notificar a cada usuario asignado
+            User::whereIn('id', $ids)->get()->each(function (User $user) {
+                $user->notify(new Notify('Te ha asignado un nuevo control de calidad'));
+            });
+        } catch (\Throwable $e) {
+            // Aquí capturas cualquier error (host desconocido, timeouts, etc.)
+            \Log::warning('No se pudo enviar la notificación por e-mail: ' . $e->getMessage());
+            // opcionalmente puedes flashar un mensaje a sesión:
+            // session()->flash('warning', 'No se pudo enviar alguna notificación por e-mail.');
+        }
         return redirect()->route('qualityControls.index')->with('message', 'Control de calidad agregado satisfactoriamente');
     }
 
@@ -268,13 +276,13 @@ class QualityControlController extends Controller
                 'active' => true
             ],
         ];
-         $assignedClientIds = $qualityControl->users()
-    ->whereHas('roles', fn($q) => $q->where('name', 'client'))
-    ->pluck('users.id')->toArray();
+        $assignedClientIds = $qualityControl->users()
+            ->whereHas('roles', fn($q) => $q->where('name', 'client'))
+            ->pluck('users.id')->toArray();
 
-$assignedConsultantIds = $qualityControl->users()
-    ->whereHas('roles', fn($q) => $q->where('name', 'consultant'))
-    ->pluck('users.id')->toArray();
+        $assignedConsultantIds = $qualityControl->users()
+            ->whereHas('roles', fn($q) => $q->where('name', 'consultant'))
+            ->pluck('users.id')->toArray();
 
 
 
@@ -301,8 +309,8 @@ $assignedConsultantIds = $qualityControl->users()
             "statuses" => $statuses,
             "clients" => $clients,
             "consultants" => $consultants,
-              "assignedClientIds" => $assignedClientIds,
-              "assignedConsultantIds" => $assignedConsultantIds,
+            "assignedClientIds" => $assignedClientIds,
+            "assignedConsultantIds" => $assignedConsultantIds,
         ]);
     }
 
@@ -324,8 +332,8 @@ $assignedConsultantIds = $qualityControl->users()
                 $user = User::find($item->id);
                 $user->notify(new Notify('Ha actualizado una auditoría  al cual estas asignado'));
             });
-        } catch (\Throwable $th) {
-            //throw $th;
+        } catch (\Throwable $e) {
+            \Log::warning('Fallo al notificar actualización de auditoría: ' . $e->getMessage());
         }
         return redirect()->route('qualityControls.index')->with('message', 'Auditoría actualizada satisfactoriamente');
     }

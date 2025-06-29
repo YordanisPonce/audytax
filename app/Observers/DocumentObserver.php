@@ -10,6 +10,8 @@ use App\Models\User;
 use App\Notifications\Notify;
 use App\Traits\Notify as NotifyTrait;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Throwable;
 
 class DocumentObserver
 {
@@ -22,11 +24,18 @@ class DocumentObserver
      */
     public function created(Document $document)
     {
-        if ($document->qualityControl) {
-            $message = "Ha creado un nuevo documento";
-            $this->notify($message, $document->qualityControl);
+        if (! $qc = $document->qualityControl) {
+            return;
         }
 
+        $message = "Ha creado un nuevo documento";
+
+        // 1) Grabar en history (NotifyTrait)
+        try {
+            $this->notify($message, $qc);
+        } catch (Throwable $e) {
+            Log::warning("History notify falló al crear documento {$document->id}: " . $e->getMessage());
+        }
     }
 
     /**
@@ -64,7 +73,16 @@ class DocumentObserver
 
             // notificar a cada usuario del QC
             if ($message && $qc) {
-                $qc->users->each(fn(User $u) => $u->notify(new Notify($message)));
+                foreach ($qc->users as $u) {
+                    try {
+                        $u->notify(new Notify($message));
+                    } catch (Throwable $e) {
+                        Log::warning(
+                            "Error notificando user {$u->id} "
+                                . "sobre doc {$document->id}: " . $e->getMessage()
+                        );
+                    }
+                }
             }
         }
 
