@@ -109,33 +109,49 @@ class HomeController extends Controller
                 ],
             ];
         } else {
-            $totalQualityControl = QualityControl::whereHas('users', function ($query) {
-                $query->where('users.id', auth()->id());
-            })->count();
+            $totalQualityControl    = QualityControl::whereHas(
+                'users',
+                fn($q) =>
+                $q->where('users.id', auth()->id())
+            )->count();
 
-            $completeQualiltyCotrol = QualityControl::whereHas('users', function ($query) {
-                $query->where('users.id', auth()->id());
-            })->whereHas('status', function ($query) {
-                $query->where('key', StatusEnum::Accepted->value);
-            })->count();
+            $completeQualityControl = QualityControl::whereHas(
+                'users',
+                fn($q) =>
+                $q->where('users.id', auth()->id())
+            )->whereHas(
+                'status',
+                fn($q) =>
+                $q->where('key', StatusEnum::Accepted->value)
+            )->count();
 
-            $comments = Comment::whereHas('user', function ($query) {
-                $query->where('id', auth()->id());
-            })->count();
+            $comments = Comment::where('user_id', auth()->id())->count();
 
-            $links = auth()->user()->qualityControls()->with(['documents.status'])->simplePaginate(10);
+            $links = auth()->user()->qualityControls()
+                ->with(['documents.status'])
+                ->simplePaginate(10);
 
+            // 1) Calculamos el porcentaje de forma segura
+            if ($totalQualityControl > 0) {
+                $percentComplete = ($completeQualityControl * 100) / $totalQualityControl;
+            } else {
+                $percentComplete = 0;
+            }
+
+            // 2) Armamos el chartData usando ese porcentaje
             $chartData = [
-                'qualityControls' => $totalQualityControl,
-                'comments' => $comments,
-                'links' => $links,
-                'qualityControlsCompletePercent' => number_format((max([$completeQualiltyCotrol, 1]) * 100) / $totalQualityControl, 0),
+                'qualityControls'                => $totalQualityControl,
+                'comments'                       => $comments,
+                'links'                          => $links,
+                // Redondeamos a entero (0 decimales)
+                'qualityControlsCompletePercent' => (int) round($percentComplete),
             ];
         }
+
         return view('Index', [
-            'pageTitle' => config('app.name'),
-            'data' => $chartData,
-            'breadcrumbItems' => $breadcrumbsItems
+            'pageTitle'       => config('app.name'),
+            'data'            => $chartData,
+            'breadcrumbItems' => $breadcrumbsItems,
         ]);
     }
 
