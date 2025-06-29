@@ -12,6 +12,10 @@
 
         </div>
         <div class="flex md:flex-col max-md:gap-2 px-20">
+            {{-- Alert start --}}
+        @if (session('message'))
+        <x-alert :message="session('message')" :type="'success'" />
+    @endif
 
             <div @class([
                 'flex max-md:flex-col relative gap-8 items-center md:overflow-hidden max-md:w-12 h-full',
@@ -131,7 +135,7 @@
                                         </li>
                                     </ul>
                                     <div class="tab-content w-full" id="tabs-tabContent">
-                                        <div class="tab-content w-full" id="tabs-tabContent">
+                                        {{-- <divddddddddd class="tab-content w-full" id="tabs-tabContent"> --}}
                                             <div @class([
                                                 'tab-pane w-full',
                                                 ' fade show active ' => !session('comments'),
@@ -145,13 +149,12 @@
                                                         <x-file-picker :document="$item" :fileId="'input-file-' . $loop->iteration"
                                                             :fileName="'files[' . $item->id . ']'" />
 
-                                                            @if($item->isOpen() || $item->isRejected())
+                                                        @if ($item->isOpen() || $item->isRejected())
                                                             @hasrole('client')
-                                                            <button type="submit"
-                                                            id="upload-btn-{{ $item->id }}"
-                                                            class="btn btn-primary btn-sm mt-2">
-                                                        Subir
-                                                    </button>
+                                                                <button type="submit" id="upload-btn-{{ $item->id }}"
+                                                                    class="btn btn-primary btn-sm mt-2">
+                                                                    Subir
+                                                                </button>
                                                             @endhasrole
                                                         @endif
                                                     </form>
@@ -242,13 +245,14 @@
                                                             class="btn btn-primary btn-sm mt-3">Subir</button>
                                                     @endhasrole
                                                 @endif --}}
-                                            </div>
+                                        
                                         </div>
+                                        
                                         <div @class([
                                             'tab-pane fade',
                                             'show active' => session('comments'),
                                             'h-[500px]' => count($qualityControl->comments),
-                                        ]) id="tabs-profile-withIcon" role="tabpanel"
+                                            ]) id="tabs-profile-withIcon" role="tabpanel"
                                             aria-labelledby="tabs-profile-withIcon-tab">
                                             <div @class(['flex flex-col h-full comment-panel reltive'])>
                                                 <div class="grow overflow-scroll  h-full" id="comment-area">
@@ -324,6 +328,7 @@
                                                 </form>
                                             </div>
                                         </div>
+                                        
                                         <div class="tab-pane fade" id="tabs-messages-withIcon" role="tabpanel"
                                             aria-labelledby="tabs-messages-withIcon-tab">
                                             <div
@@ -441,12 +446,11 @@
                 </div>
             @endisset
         </div>
-        {{-- Alert start --}}
-        @if (session('message'))
-            <x-alert :message="session('message')" :type="'success'" />
-        @endif
+        
         {{-- Alert end --}}
     </div>
+
+    
     @push('scripts')
         <script>
             function showFormComment() {

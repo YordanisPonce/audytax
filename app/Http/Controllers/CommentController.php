@@ -45,8 +45,20 @@ class CommentController extends Controller
     public function store(CommentRequest $request)
     {
         Auth::user()->comments()->create($request->only('comment', 'user_id', 'fase_id', 'quality_control_id', 'comment_id', 'document_id'));
-        return redirect()->back()->with('comments', 1);
+        // Si es un comentario “general” (sin document_id), forzamos la pestaña Comentarios
+        if (! $request->filled('document_id')) {
+            return redirect()->back()
+                ->with('message', 'Comentario guardado correctamente')
+                ->with('status', 'success')
+                ->with('comments', true);
+        }
+
+        // Si llega document_id, NO seteamos el flag, así se mantiene en la pestaña Documentos
+        return redirect()->back()
+            ->with('message', 'Comentario al documento guardado correctamente')
+            ->with('status', 'success');
     }
+    
 
     /**
      * Display the specified resource.
