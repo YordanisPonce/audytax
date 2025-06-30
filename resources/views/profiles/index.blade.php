@@ -34,7 +34,7 @@
                         {{ auth()->user()->qualityControls()->count() }}
                     </div>
                     <div class="text-sm text-slate-600 font-light dark:text-slate-300">
-                        Auditorias
+                        Auditorías
                     </div>
                 </div>
                 <!-- end single -->

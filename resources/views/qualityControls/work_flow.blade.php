@@ -2,6 +2,7 @@
     $route = \Illuminate\Support\Facades\Route::current();
     $id = $route->parameter('id');
     $faseId = $route->parameter('fase');
+    $faseCount = $qualityControl->fases->count();
 @endphp
 
 <x-app-layout>
@@ -13,48 +14,52 @@
         </div>
         <div class="flex md:flex-col max-md:gap-2 px-20">
             {{-- Alert start --}}
-        @if (session('message'))
-            <x-alert :message="session('message')" :type="'success'" />
-        @endif
+            @if (session('message'))
+                <x-alert :message="session('message')" :type="'success'" />
+            @endif
 
-            <div @class([
-                'flex max-md:flex-col relative gap-8 items-center md:overflow-hidden max-md:w-12 h-full',
-                'justify-between' => count($qualityControl->fases) > 1,
-                'justify-center' => count($qualityControl->fases) <= 2,
-            ]) class="">
-                @foreach ($qualityControl->fases as $item)
-                    <div @class([
-                        'flex items-center flex-col md:mt-4 relative',
-                        'max-md:mt-4' => $loop->iteration !== 1,
-                        'active' => $fase->id == $item->id,
-                    ])>
-                        <a href="{{ route('qualityControls.details', ['qualityControl' => $qualityControl, 'fase' => $item->id]) }}"
-                            data-tippy-content="Estado: {{ $item->getFinishPercent() }}%" data-tippy-theme="black"
-                            @class([
-                                'toolTip onBottom h-11 w-11 md:h-16 md:w-16 rounded-full grid place-items-center scale-75 hover:scale-[.65] cursor-pointer transition-all duration-200 ease-in-out',
-                                'bg-blue-300' => $fase->id == $item->id,
-                                'bg-gray-300' => $fase->id != $item->id,
-                            ])>
-                            <div @class([
-                                'h-4 w-4 md:h-6 md:w-6 rounded-full flex items-center justify-center overflow-hidden p-0',
-                                'bg-blue-500' => $fase->id == $item->id,
-                                'bg-gray-500' => $fase->id != $item->id,
-                                'bg-success-500' => $item->getFinishPercent() == 100,
-                            ])>
-                            </div>
-                        </a>
-                        <p class="mb-0 w-24 text-center truncate max-md:hidden">
-                            {{ $item->name }}
-                        </p>
-                    </div>
+            {{-- Solo muestro los steps si hay más de 1 fase --}}
+            @if ($faseCount > 1)
+                <div @class([
+                    'flex max-md:flex-col relative gap-8 items-center md:overflow-hidden max-md:w-12 h-full',
+                    'justify-between' => count($qualityControl->fases) > 1,
+                    'justify-center' => count($qualityControl->fases) <= 2,
+                ]) class="">
+                    @foreach ($qualityControl->fases as $item)
+                        <div @class([
+                            'flex items-center flex-col md:mt-4 relative',
+                            'max-md:mt-4' => $loop->iteration !== 1,
+                            'active' => $fase->id == $item->id,
+                        ])>
+                            <a href="{{ route('qualityControls.details', ['qualityControl' => $qualityControl, 'fase' => $item->id]) }}"
+                                data-tippy-content="Estado: {{ $item->getFinishPercent() }}%" data-tippy-theme="black"
+                                @class([
+                                    'toolTip onBottom h-11 w-11 md:h-16 md:w-16 rounded-full grid place-items-center scale-75 hover:scale-[.65] cursor-pointer transition-all duration-200 ease-in-out',
+                                    'bg-blue-300' => $fase->id == $item->id,
+                                    'bg-gray-300' => $fase->id != $item->id,
+                                ])>
+                                <div @class([
+                                    'h-4 w-4 md:h-6 md:w-6 rounded-full flex items-center justify-center overflow-hidden p-0',
+                                    'bg-blue-500' => $fase->id == $item->id,
+                                    'bg-gray-500' => $fase->id != $item->id,
+                                    'bg-success-500' => $item->getFinishPercent() == 100,
+                                ])>
+                                </div>
+                            </a>
+                            <p class="mb-0 w-24 text-center truncate max-md:hidden">
+                                {{ $item->name }}
+                            </p>
+                        </div>
 
-                    @if (!$loop->last)
-                        <p
-                            class="flex-1 text-center border-2 border-dashed border-blue-500 max-md:w-20 max-md:rotate-90 max-md:mt-4">
-                        </p>
-                    @endif
-                @endforeach
-            </div>
+                        @if (!$loop->last)
+                            <p
+                                class="flex-1 text-center border-2 border-dashed border-blue-500 max-md:w-20 max-md:rotate-90 max-md:mt-4">
+                            </p>
+                        @endif
+                    @endforeach
+                </div>
+
+            @endif
             @isset($fase)
                 <div class="px-2  w-full md:mt-4 md:hidden h-fit">
                     <h1 class="text-2xl text-slate-600 flex gap-2 items-center justify-between flex-wrap">
@@ -136,123 +141,121 @@
                                     </ul>
                                     <div class="tab-content w-full" id="tabs-tabContent">
                                         {{-- <divddddddddd class="tab-content w-full" id="tabs-tabContent"> --}}
-                                            <div @class([
-                                                'tab-pane w-full',
-                                                ' fade show active ' => !session('comments'),
-                                            ]) id="tabs-home-withIcon" role="tabpanel"
-                                                aria-labelledby="tabs-home-withIcon-tab">
-                                                @foreach ($fase->documents as $item)
-                                                    {{-- Formulario de subida para cada documento --}}
-                                                    <form enctype="multipart/form-data" method="POST"
-                                                        action="{{ route('documents.save-files', $fase) }}" class="mb-4">
-                                                        @csrf
-                                                        <x-file-picker :document="$item" :fileId="'input-file-' . $loop->iteration"
-                                                            :fileName="'files[' . $item->id . ']'" />
+                                        <div @class([
+                                            'tab-pane w-full',
+                                            ' fade show active ' => !session('comments'),
+                                        ]) id="tabs-home-withIcon" role="tabpanel"
+                                            aria-labelledby="tabs-home-withIcon-tab">
+                                            @foreach ($fase->documents as $item)
+                                                {{-- Formulario de subida para cada documento --}}
+                                                <form enctype="multipart/form-data" method="POST"
+                                                    action="{{ route('documents.save-files', $fase) }}" class="mb-4">
+                                                    @csrf
+                                                    <x-file-picker :document="$item" :fileId="'input-file-' . $loop->iteration" :fileName="'files[' . $item->id . ']'" />
 
-                                                        @if ($item->isOpen() || $item->isRejected())
-                                                            @hasrole('client')
-                                                                <button type="submit" id="upload-btn-{{ $item->id }}"
-                                                                    class="btn btn-primary btn-sm mt-2">
-                                                                    Subir
-                                                                </button>
-                                                            @endhasrole
-                                                        @endif
-                                                    </form>
-
-                                                    {{-- 2) Botón que despliega/oculta comentarios --}}
-                                                    <button type="button"
-                                                        class="ml-2 mt-2 flex items-center text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-full px-3 py-1 transition-colors shadow-sm"
-                                                        onclick="toggleComments({{ $item->id }})"
-                                                        title="Ver comentarios">
-                                                        <iconify-icon icon="heroicons-outline:chat-alt-2"
-                                                            class="mr-1"></iconify-icon>
-                                                        <span
-                                                            class="font-semibold">{{ $item->comments()->whereNull('comment_id')->count() }}</span>
-                                                    </button>
-
-                                                    {{-- Panel oculto de comentarios --}}
-                                                    <div id="comments-{{ $item->id }}"
-                                                        class="hidden w-full mt-3 bg-white dark:bg-slate-800 rounded-xl border border-blue-100 dark:border-slate-700 p-4 shadow-lg transition-all duration-300">
-                                                        {{-- Cabecera --}}
-                                                        <h4
-                                                            class="flex items-center gap-2 font-semibold text-blue-700 dark:text-blue-200 mb-3">
-                                                            <iconify-icon icon="heroicons-outline:chat-alt-2"
-                                                                class="text-xl"></iconify-icon>
-                                                            Comentarios
-                                                            ({{ $item->comments()->whereNull('comment_id')->count() }})
-                                                        </h4>
-
-                                                        {{-- Lista de comentarios --}}
-                                                        <div class="space-y-4 max-h-60 overflow-y-auto pr-2">
-                                                            @forelse($item->comments()->whereNull('comment_id')->latest()->get() as $comment)
-                                                                <div class="flex gap-3 items-start">
-                                                                    <img src="{{ $comment->user->avatar ?: Avatar::create($comment->user->name)->toBase64() }}"
-                                                                        class="h-10 w-10 rounded-full border-2 border-blue-200"
-                                                                        alt="{{ $comment->user->name }}">
-                                                                    <div
-                                                                        class="flex-1 bg-blue-50 dark:bg-slate-700 rounded-lg p-4 shadow">
-                                                                        <div class="flex justify-between items-center">
-                                                                            <span
-                                                                                class="font-bold text-blue-800 dark:text-blue-200">
-                                                                                {{ $comment->user->name }}
-                                                                            </span>
-                                                                            <span
-                                                                                class="text-xs text-gray-500 dark:text-gray-400">
-                                                                                {{ $comment->created_at }}
-                                                                            </span>
-                                                                        </div>
-                                                                        <p class="mt-2 text-gray-700 dark:text-gray-200">
-                                                                            {{ $comment->comment }}
-                                                                        </p>
-                                                                    </div>
-                                                                </div>
-                                                            @empty
-                                                                <div
-                                                                    class="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
-                                                                    No hay comentarios en este documento.
-                                                                </div>
-                                                            @endforelse
-                                                        </div>
-
-                                                        {{-- Formulario de nuevo comentario --}}
-                                                        {{-- @can('createComment', $qualityControl) --}}
-                                                        <form action="{{ route('comments.store') }}" method="POST"
-                                                            class="mt-4 flex gap-2">
-                                                            @csrf
-                                                            <input type="hidden" name="quality_control_id"
-                                                                value="{{ $qualityControl->id }}">
-                                                            <input type="hidden" name="fase_id"
-                                                                value="{{ $fase->id }}">
-                                                            <input type="hidden" name="document_id"
-                                                                value="{{ $item->id }}">
-                                                            <input type="text" name="comment" required
-                                                                class="flex-1 rounded-full border border-blue-200 px-4 py-2 shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
-                                                                placeholder="Escribe un comentario...">
-                                                            <button type="submit"
-                                                                class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 flex items-center gap-1">
-                                                                <iconify-icon icon="heroicons-outline:paper-airplane"
-                                                                    class="text-lg"></iconify-icon>
-                                                                Enviar
+                                                    @if ($item->isOpen() || $item->isRejected())
+                                                        @hasrole('client')
+                                                            <button type="submit" id="upload-btn-{{ $item->id }}"
+                                                                class="btn btn-primary btn-sm mt-2">
+                                                                Subir
                                                             </button>
-                                                        </form>
-                                                        {{-- @endcan --}}
+                                                        @endhasrole
+                                                    @endif
+                                                </form>
+
+                                                {{-- 2) Botón que despliega/oculta comentarios --}}
+                                                <button type="button"
+                                                    class="ml-2 mt-2 flex items-center text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 rounded-full px-3 py-1 transition-colors shadow-sm"
+                                                    onclick="toggleComments({{ $item->id }})" title="Ver comentarios">
+                                                    <iconify-icon icon="heroicons-outline:chat-alt-2"
+                                                        class="mr-1"></iconify-icon>
+                                                    <span
+                                                        class="font-semibold">{{ $item->comments()->whereNull('comment_id')->count() }}</span>
+                                                </button>
+
+                                                {{-- Panel oculto de comentarios --}}
+                                                <div id="comments-{{ $item->id }}"
+                                                    class="hidden w-full mt-3 bg-white dark:bg-slate-800 rounded-xl border border-blue-100 dark:border-slate-700 p-4 shadow-lg transition-all duration-300">
+                                                    {{-- Cabecera --}}
+                                                    <h4
+                                                        class="flex items-center gap-2 font-semibold text-blue-700 dark:text-blue-200 mb-3">
+                                                        <iconify-icon icon="heroicons-outline:chat-alt-2"
+                                                            class="text-xl"></iconify-icon>
+                                                        Comentarios
+                                                        ({{ $item->comments()->whereNull('comment_id')->count() }})
+                                                    </h4>
+
+                                                    {{-- Lista de comentarios --}}
+                                                    <div class="space-y-4 max-h-60 overflow-y-auto pr-2">
+                                                        @forelse($item->comments()->whereNull('comment_id')->latest()->get() as $comment)
+                                                            <div class="flex gap-3 items-start">
+                                                                <img src="{{ $comment->user->avatar ?: Avatar::create($comment->user->name)->toBase64() }}"
+                                                                    class="h-10 w-10 rounded-full border-2 border-blue-200"
+                                                                    alt="{{ $comment->user->name }}">
+                                                                <div
+                                                                    class="flex-1 bg-blue-50 dark:bg-slate-700 rounded-lg p-4 shadow">
+                                                                    <div class="flex justify-between items-center">
+                                                                        <span
+                                                                            class="font-bold text-blue-800 dark:text-blue-200">
+                                                                            {{ $comment->user->name }}
+                                                                        </span>
+                                                                        <span
+                                                                            class="text-xs text-gray-500 dark:text-gray-400">
+                                                                            {{ $comment->created_at }}
+                                                                        </span>
+                                                                    </div>
+                                                                    <p class="mt-2 text-gray-700 dark:text-gray-200">
+                                                                        {{ $comment->comment }}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        @empty
+                                                            <div
+                                                                class="text-center py-4 text-gray-500 dark:text-gray-400 text-sm">
+                                                                No hay comentarios en este documento.
+                                                            </div>
+                                                        @endforelse
                                                     </div>
-                                                @endforeach
-                                                {{-- 
+
+                                                    {{-- Formulario de nuevo comentario --}}
+                                                    {{-- @can('createComment', $qualityControl) --}}
+                                                    <form action="{{ route('comments.store') }}" method="POST"
+                                                        class="mt-4 flex gap-2">
+                                                        @csrf
+                                                        <input type="hidden" name="quality_control_id"
+                                                            value="{{ $qualityControl->id }}">
+                                                        <input type="hidden" name="fase_id"
+                                                            value="{{ $fase->id }}">
+                                                        <input type="hidden" name="document_id"
+                                                            value="{{ $item->id }}">
+                                                        <input type="text" name="comment" required
+                                                            class="flex-1 rounded-full border border-blue-200 px-4 py-2 shadow focus:outline-none focus:ring-2 focus:ring-blue-400"
+                                                            placeholder="Escribe un comentario...">
+                                                        <button type="submit"
+                                                            class="bg-blue-600 hover:bg-blue-700 text-white rounded-full px-4 py-2 flex items-center gap-1">
+                                                            <iconify-icon icon="heroicons-outline:paper-airplane"
+                                                                class="text-lg"></iconify-icon>
+                                                            Enviar
+                                                        </button>
+                                                    </form>
+                                                    {{-- @endcan --}}
+                                                </div>
+                                            @endforeach
+                                            {{-- 
                                                 @if ($fase->isOpen() || $fase->isRejected())
                                                     @hasrole('client')
                                                         <button type="submit"
                                                             class="btn btn-primary btn-sm mt-3">Subir</button>
                                                     @endhasrole
                                                 @endif --}}
-                                        
+
                                         </div>
-                                        
+
                                         <div @class([
                                             'tab-pane fade',
                                             'show active' => session('comments'),
                                             'h-[500px]' => count($qualityControl->comments),
-                                            ]) id="tabs-profile-withIcon" role="tabpanel"
+                                        ]) id="tabs-profile-withIcon" role="tabpanel"
                                             aria-labelledby="tabs-profile-withIcon-tab">
                                             <div @class(['flex flex-col h-full comment-panel reltive'])>
                                                 <div class="grow overflow-scroll  h-full" id="comment-area">
@@ -272,7 +275,8 @@
                                                                 <img src="{{ asset('images/empty-messages.png') }}"
                                                                     class="h-40 w-40 m-auto" alt="">
                                                                 <span class="w-[80%] m-auto">
-                                                                    No se han escrito comentarios <br> para este control de
+                                                                    No se han escrito comentarios <br> para este control
+                                                                    de
                                                                     calidad
                                                                 </span>
                                                             </p>
@@ -328,7 +332,7 @@
                                                 </form>
                                             </div>
                                         </div>
-                                        
+
                                         <div class="tab-pane fade" id="tabs-messages-withIcon" role="tabpanel"
                                             aria-labelledby="tabs-messages-withIcon-tab">
                                             <div
@@ -446,11 +450,11 @@
                 </div>
             @endisset
         </div>
-        
+
         {{-- Alert end --}}
     </div>
 
-    
+
     @push('scripts')
         <script>
             function showFormComment() {
@@ -559,7 +563,8 @@
             }
 
             @push('scripts')
-                <script >
+                <
+                script >
                     function toggleComments(docId) {
                         const el = document.getElementById('comments-' + docId);
                         if (!el) return;

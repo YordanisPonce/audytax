@@ -126,7 +126,7 @@ class QualityControlController extends Controller
 
         return view('qualityControls.create', [
             'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => "Crear auditoria",
+            'pageTitle' => "Crear auditoría",
             "auditoryTypes" => $auditoryTypes,
             "statuses" => $statuses,
             "clients" => $clients,
@@ -249,7 +249,7 @@ class QualityControlController extends Controller
             'histories'      => $histories,
             'breadcrumbItems' => $breadcrumbsItems,
             'comments'       => $comments,
-            'pageTitle'     => 'Lista de la Auditoria',
+            'pageTitle'     => 'Lista de la Auditoría',
             'statusCounts'   => $counts,
             'totalDocuments' => $totalDocuments,
             // si necesitas comments/activity, pásalos también…
@@ -304,7 +304,7 @@ class QualityControlController extends Controller
         return view('qualityControls.edit', [
             'qualityControl' => $qualityControl,
             'breadcrumbItems' => $breadcrumbsItems,
-            'pageTitle' => 'Editar control de calidad',
+            'pageTitle' => 'Editar auditoría',
             "auditoryTypes" => $auditoryTypes,
             "statuses" => $statuses,
             "clients" => $clients,

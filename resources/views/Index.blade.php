@@ -77,7 +77,7 @@
                             <iconify-icon icon="fluent-mdl2:compliance-audit"></iconify-icon>
                         </div>
                         <h4 class="font-Interfont-normal text-sm text-textColor dark:text-white pb-1">
-                            {!! __('Plantillas de auditoria') !!}
+                            {!! __('Plantillas de auditoría') !!}
                         </h4>
                         <p class="font-Intertext-xl text-black dark:text-white font-medium">
                             {{ $data['productSold']['total'] }}
@@ -94,7 +94,7 @@
                             <iconify-icon icon="icon-park-twotone:inspection"></iconify-icon>
                         </div>
                         <h4 class="font-Interfont-normal text-sm text-textColor dark:text-white pb-1">
-                            Auditoria
+                            Auditoría
                         </h4>
                         <p class="font-Intertext-xl text-black dark:text-white font-medium">
                             {{ $data['growth']['total'] }}
@@ -112,7 +112,7 @@
                             <iconify-icon icon="icon-park-twotone:inspection"></iconify-icon>
                         </div>
                         <h4 class="font-Interfont-normal text-sm text-textColor dark:text-white pb-1">
-                            Auditorias
+                            Auditorías
                         </h4>
                         <p class="font-Intertext-xl text-black dark:text-white font-medium">
                             {{ $data['qualityControls'] }}

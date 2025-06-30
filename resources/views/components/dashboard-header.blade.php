@@ -4,7 +4,13 @@
 @php
     $qualityControl = request()->query('qualityControl');
     $id = last(request()->segments());
+    $isDashboard = request()->is('dashboard*');
+    $isUsers     = request()->is('users*');
+    $isAuditory  = ((request()->is('fases.*') || request()->is('fases*')) && !$qualityControl)
+                    || request()->is('auditoryTypes*');
+    $isQuality   = request()->is('qualityControls*') || $qualityControl;
 @endphp
+
 
 <div class="z-[9] sticky top-0" id="app_header">
     <div class="app-header z-[999] bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-700 !ml-0  margin-0">
@@ -36,9 +42,10 @@
         <a
         
             href="{{ route('dashboard.index') }}"
-            class="flex items-center space-x-1 px-3 py-2 rounded 
-                   hover:bg-gray-100 dark:hover:bg-slate-700 
-                   {{ request()->is('dashboard*') ? 'bg-gray-200 dark:bg-slate-600 font-semibold' : 'text-gray-700 dark:text-gray-300' }}">
+            class="flex items-center space-x-1 px-3 py-2 rounded transition-colors duration-150
+            {{ $isDashboard
+                ? 'bg-gray-200 dark:bg-slate-600 font-semibold hover:bg-gray-300 dark:hover:bg-slate-500'
+                : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-slate-700/90' }}">
             <iconify-icon icon="heroicons-outline:home" class="text-lg"></iconify-icon>
             <span>{{ __('Inicio') }}</span>
         </a>
@@ -48,8 +55,10 @@
         @can('user index')
             <li>
                 <a href="{{ route('users.index') }}"
-                   class=" flex items-center space-x-1 px-3 py-2 rounded 
-                   hover:bg-gray-100 dark:hover:bg-slate-700  navItem {{ request()->is('users.*') || request()->is('users*') ? 'active' : '' }}">
+                class="flex items-center space-x-1 px-3 py-2 rounded transition-colors duration-150
+                {{ $isUsers
+                    ? 'bg-gray-200 dark:bg-slate-600 font-semibold hover:bg-gray-300 dark:hover:bg-slate-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-slate-700/90' }}">
                     <span class="flex items-center">
                         <iconify-icon class="nav-icon" icon="mdi:users"></iconify-icon>
                         <span>{{ __('Usuarios') }}</span>
@@ -62,8 +71,10 @@
         @can('auditoryType index')
             <li>
                 <a href="{{ route('auditoryTypes.index') }}"
-                   class="flex items-center space-x-1 px-3 py-2 rounded 
-                   hover:bg-gray-100 dark:hover:bg-slate-700  navItem {{ ((request()->is('fases.*') || request()->is('fases*')) && !$qualityControl) || request()->is('auditoryTypes.*') || request()->is('auditoryTypes*') ? 'active' : '' }}">
+                class="flex items-center space-x-1 px-3 py-2 rounded transition-colors duration-150
+                {{ $isAuditory
+                    ? 'bg-gray-200 dark:bg-slate-600 font-semibold hover:bg-gray-300 dark:hover:bg-slate-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-slate-700/90' }}">
                     <span class="flex items-center">
                         <iconify-icon class="nav-icon" icon="fluent-mdl2:compliance-audit"></iconify-icon>
                         <span class="truncate">{{ __('Auditory Type') }}</span>
@@ -76,8 +87,10 @@
         @can('qualityControl index')
             <li>
                 <a href="{{ route('qualityControls.index') }}"
-                   class="flex items-center space-x-1 px-3 py-2 rounded 
-                   hover:bg-gray-100 dark:hover:bg-slate-700  navItem {{ request()->is('qualityControls.*') || request()->is('qualityControls*') || $qualityControl ? 'active' : '' }}">
+                class="flex items-center space-x-1 px-3 py-2 rounded transition-colors duration-150
+                {{ $isQuality
+                    ? 'bg-gray-200 dark:bg-slate-600 font-semibold hover:bg-gray-300 dark:hover:bg-slate-500'
+                    : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-slate-700/90' }}">
                     <span class="flex items-center">
                         <iconify-icon class="nav-icon" icon="icon-park-twotone:inspection"></iconify-icon>
                         <span class="truncate">{{ __('Quality Controls') }}</span>
@@ -95,11 +108,10 @@
             <li>
                 <a
                     href="{{ route('qualityControls.details', ['qualityControl' => $link, 'fase' => $link->getActiveFase()]) }}"
-                    class="flex items-center space-x-1 px-3 py-2 rounded 
-                           hover:bg-gray-100 dark:hover:bg-slate-700 
-                           {{ $isActive 
-                                ? 'bg-gray-200 dark:bg-slate-600 font-semibold' 
-                                : 'text-gray-700 dark:text-gray-300' }}">
+                    class="flex items-center space-x-1 px-3 py-2 rounded transition-colors duration-150
+                      {{ $isActive
+                          ? 'bg-gray-200 dark:bg-slate-600 font-semibold hover:bg-gray-300 dark:hover:bg-slate-500'
+                          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-200/80 dark:hover:bg-slate-700/90' }}">
                     <iconify-icon icon="icon-park-twotone:inspection" class="text-lg"></iconify-icon>
                     <span class="truncate">{{ $link->name }}</span>
                 </a>
@@ -138,7 +150,7 @@
             @else
                 <ul>
                     @foreach($notifications as $note)
-                        <li class="px-4 py-3 hover:bg-gray-100 dark:hover:bg-slate-700 transition">
+                        <li class="px-4 py-3  hover:bg-gray-200/80 dark:hover:bg-slate-700/90  transition">
                             <div class="flex items-start space-x-2">
                                 <img
                                     src="{{ $note->user->avatar ?: Avatar::create($note->user->name)->setDimension(60)->setFontSize(40)->toBase64() }}"
